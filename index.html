@@ -17,27 +17,26 @@
   </body>
 </html> -->
 
-<!DOCTYPE html>
-<html lang="es">
+<html> 
 <head>
-    <meta charset="UTF-8">
-    <title>Modelo 3D en AR</title>
+    <meta charset="utf-8">
+    <title>Modelo 3D en Realidad Aumentada</title>
     <script src="https://aframe.io/releases/1.2.0/aframe.min.js"></script>
     <script src="https://cdn.jsdelivr.net/gh/jeromeetienne/AR.js/aframe/build/aframe-ar.min.js"></script>
 </head>
 <body style="margin: 0; overflow: hidden;">
-    <a-scene embedded arjs vr-mode-ui="enabled: false" renderer="logarithmicDepthBuffer: true; alpha: true">
-        <!-- Cargar modelos -->
+    <a-scene embedded arjs>
+        <!-- Cargar los modelos -->
         <a-assets>
-            <a-asset-item id="bird" response-type="arraybuffer" src="phoenix_bird/scene.gltf"></a-asset-item>
+            <a-asset-item id="bird" response-type="arraybuffer" src="https://raw.githubusercontent.com/JesUr28/AR-TourGuide/refs/heads/main/phoenix_bird/scene.gltf"></a-asset-item>
         </a-assets>
 
-        <!-- Modelo de prueba (Pato) -->
+        <!-- Modelo en AR (aparece sobre el marcador) -->
         <a-marker preset="hiro">
-            <a-entity gltf-model="https://cdn.jsdelivr.net/gh/KhronosGroup/glTF-Sample-Models/2.0/Duck/glTF/Duck.gltf" 
-                      scale="0.2 0.2 0.2" position="0 0 0"></a-entity>
+            <a-entity gltf-model="#bird" scale="0.2 0.2 0.2" position="0 0 0"></a-entity>
         </a-marker>
 
+        <!-- Cámara AR -->
         <a-entity camera></a-entity>
     </a-scene>
 </body>
