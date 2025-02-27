@@ -27,15 +27,12 @@
 </head>
 <body style="margin: 0; overflow: hidden;">
     <a-scene embedded arjs vr-mode-ui="enabled: false" renderer="logarithmicDepthBuffer: true; alpha: true">
-        <!-- Cargar modelos -->
         <a-assets>
-            <a-asset-item id="bird" response-type="arraybuffer" src="phoenix_bird/scene.gltf"></a-asset-item>
+            <a-asset-item id="bird" src="phoenix_bird/scene.gltf"></a-asset-item>
         </a-assets>
 
-        <!-- Modelo de prueba (Pato) -->
         <a-marker preset="hiro">
-            <a-entity gltf-model="https://cdn.jsdelivr.net/gh/KhronosGroup/glTF-Sample-Models/2.0/Duck/glTF/Duck.gltf" 
-                      scale="0.2 0.2 0.2" position="0 0 0"></a-entity>
+            <a-entity gltf-model="#bird" scale="0.2 0.2 0.2" position="0 0 0"></a-entity>
         </a-marker>
 
         <a-entity camera></a-entity>
