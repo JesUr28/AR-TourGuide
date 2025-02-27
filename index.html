@@ -26,7 +26,7 @@
     <script src="https://cdn.jsdelivr.net/gh/jeromeetienne/AR.js/aframe/build/aframe-ar.min.js"></script>
 </head>
 <body style="margin: 0; overflow: hidden;">
-    <a-scene embedded arjs>
+    <a-scene embedded arjs vr-mode-ui="enabled: false" renderer="logarithmicDepthBuffer: true; alpha: true">
         <!-- Cargar los modelos -->
         <a-assets>
             <a-asset-item id="bird" response-type="arraybuffer" src="phoenix_bird/scene.gltf"></a-asset-item>
@@ -42,6 +42,7 @@
     </a-scene>
 </body>
 </html>
+
 
 
 
