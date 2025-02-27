@@ -1,18 +1,29 @@
 <!DOCTYPE html>
-<html>
+<html lang="es">
   <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Imagen en Esfera 3D - A-Frame AR</title>
+
+    <!-- Librerías de A-Frame y AR.js -->
     <script src="https://aframe.io/releases/1.2.0/aframe.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/gh/jeromeetienne/AR.js/aframe/build/aframe-ar.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/gh/jeromeetienne/AR.js@1.7.2/aframe/build/aframe-ar.min.js"></script>
   </head>
+
   <body style="margin: 0; overflow: hidden;">
     <a-scene embedded arjs>
-      <!-- Modelo 3D del monumento -->
-      <a-entity position="0 0 0">
-        <a-gltf-model src="https://cdn.jsdelivr.net/gh/JesUr28/AR-TourGuide@main/phoenix_bird.glb" scale="0.5 0.5 0.5"></a-gltf-model>
-      </a-entity>
-      
+
+      <!-- Esfera con la imagen (Sustituye la URL con tu imagen) -->
+      <a-sphere src="https://YOUR_IMAGE_URL_HERE"
+                position="0 0 -2" 
+                radius="1" 
+                segments-width="32"
+                segments-height="32">
+      </a-sphere>
+
       <!-- Cámara AR -->
       <a-camera position="0 0 0"></a-camera>
+
     </a-scene>
   </body>
 </html>
