@@ -1,22 +1,3 @@
-<!-- <!DOCTYPE html>
-<html>
-  <head>
-    <script src="https://aframe.io/releases/1.2.0/aframe.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/gh/jeromeetienne/AR.js/aframe/build/aframe-ar.min.js"></script>
-  </head>
-  <body style="margin: 0; overflow: hidden;">
-    <a-scene embedded arjs> -->
-      <!-- Modelo 3D del monumento -->
-      <!-- <a-entity position="0 0 0">
-        <a-gltf-model src="phoenix_bird/scene.gltf" scale="0.5 0.5 0.5"></a-gltf-model>
-      </a-entity> -->
-      
-      <!-- Cámara AR -->
-      <!-- <a-camera position="0 0 0"></a-camera>
-    </a-scene>
-  </body>
-</html> -->
-
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -24,58 +5,50 @@
     <title>Modelo 3D en AR</title>
     <script src="https://aframe.io/releases/1.2.0/aframe.min.js"></script>
     <script src="https://cdn.jsdelivr.net/gh/jeromeetienne/AR.js/aframe/build/aframe-ar.min.js"></script>
+    <script src="https://raw.githack.com/AR-js-org/studio-backend/master/src/modules/marker/tools/gesture-detector.js"></script>
+    <script src="https://raw.githack.com/AR-js-org/studio-backend/master/src/modules/marker/tools/gesture-handler.js"></script>
+    <link rel="stylesheet" href="styles.css">
 </head>
-<body style="margin: 0; overflow: hidden;">
-    <a-scene embedded arjs vr-mode-ui="enabled: false" renderer="logarithmicDepthBuffer: true; alpha: true">
-        <!-- Cargar modelos -->
-        <a-assets>
-            <a-asset-item id="bird" response-type="arraybuffer" src="phoenix_bird/scene.gltf"></a-asset-item>
-        </a-assets>
+<body>
+    <div id="container">
+        <!-- Contenedor del modelo 3D -->
+        <div id="model-container">
+            <a-scene embedded arjs="detectionMode: mono_and_matrix; debugUIEnabled: false" 
+                     vr-mode-ui="enabled: false" renderer="logarithmicDepthBuffer: true; alpha: true" 
+                     gesture-detector>
+                <a-assets>
+                    <a-asset-item id="bird" src="https://cdn.glitch.global/f24dfbcf-5d5a-489d-b6c0-b547e6c91644/asset.glb"></a-asset-item>
+                </a-assets>
 
-        <!-- Modelo de prueba (Pato) -->
-        <a-marker preset="hiro">
-            <a-entity gltf-model="https://cdn.jsdelivr.net/gh/KhronosGroup/glTF-Sample-Models/2.0/Duck/glTF/Duck.gltf" 
-                      scale="0.2 0.2 0.2" position="0 0 0"></a-entity>
-        </a-marker>
+                <a-marker preset="hiro">
+                    <a-entity id="bird-model" gltf-model="#bird" scale="0.006 0.006 0.006"
+                              position="0.7 0 0" animation-mixer="loop: repeat"
+                              class="clickable" gesture-handler>
+                    </a-entity>
+                </a-marker>
 
-        <a-entity camera></a-entity>
-    </a-scene>
+                <a-entity camera></a-entity>
+            </a-scene>
+        </div>
+
+        <!-- Contenedor del texto -->
+        <div id="info-box">
+            <button id="speak-btn" class="speak-button">Reproducir Texto</button>
+            <h2>Historia del Fénix</h2>
+            <p id="phoenix-text">
+                El fénix es un ave mítica que simboliza la inmortalidad, la resurrección y la vida después de la muerte.
+                Se dice que cuando el fénix siente que va a morir, construye un nido de ramas aromáticas y especias, se incendia y renace de sus cenizas.
+                <br><br>
+                Esta historia ha sido contada en muchas culturas, desde el antiguo Egipto hasta la mitología griega y romana.
+                En la cultura china, el fénix representa armonía y prosperidad.
+                <br><br>
+                En la actualidad, el fénix es un símbolo de superación, renacimiento y resiliencia. Se usa en literatura, cine y diversas formas de arte.
+                <br><br>
+                Se dice que cada 500 años el fénix resurge, recordándonos que siempre hay una oportunidad para empezar de nuevo.
+            </p>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
 </body>
 </html>
-
-
-
-
-
-
-
-<!-- <!DOCTYPE html>
-<html lang="es">
-  <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Imagen en Esfera 3D - A-Frame AR</title> -->
-
-    <!-- Librerías de A-Frame y AR.js -->
-    <!-- <script src="https://aframe.io/releases/1.2.0/aframe.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/gh/jeromeetienne/AR.js@1.7.2/aframe/build/aframe-ar.min.js"></script>
-  </head>
-
-  <body style="margin: 0; overflow: hidden;">
-    <a-scene embedded arjs> -->
-
-      <!-- Esfera con la imagen (Sustituye la URL con tu imagen) -->
-      <!-- <a-sphere src="gato.png
-"
-                position="0 0 -3" 
-                radius="1" 
-                segments-width="32"
-                segments-height="32">
-      </a-sphere> -->
-
-      <!-- Cámara AR -->
-      <!-- <a-camera position="0 0 0"></a-camera>
-
-    </a-scene>
-  </body>
-</html> -->
