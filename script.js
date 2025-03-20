@@ -19,11 +19,15 @@ const texts = {
 document.querySelector("#marker-phoenix").addEventListener("markerFound", () => {
     titleElement.innerText = texts.phoenix.title;
     textElement.innerText = texts.phoenix.content;
+    // Restablecer escala al tamaño original del ave
+    document.querySelector("#bird-model").setAttribute("scale", "0.006 0.006 0.006");
 });
 
 document.querySelector("#marker-lion").addEventListener("markerFound", () => {
     titleElement.innerText = texts.lion.title;
     textElement.innerText = texts.lion.content;
+     // Restablecer escala al tamaño original del león
+    document.querySelector("#lion-model").setAttribute("scale", "0.006 0.006 0.006");
 });
 
 // Opción: Puedes hacer que desaparezca el texto cuando no haya marcador detectado
