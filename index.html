@@ -13,15 +13,25 @@
     <div id="container">
         <!-- Contenedor del modelo 3D -->
         <div id="model-container">
-            <a-scene embedded arjs="detectionMode: mono_and_matrix; debugUIEnabled: false" 
-                     vr-mode-ui="enabled: false" renderer="logarithmicDepthBuffer: true; alpha: true" 
+            <a-scene embedded arjs="detectionMode: mono_and_matrix; debugUIEnabled: false"
+                     vr-mode-ui="enabled: false" renderer="logarithmicDepthBuffer: true; alpha: true"
                      gesture-detector>
                 <a-assets>
                     <a-asset-item id="bird" src="https://cdn.glitch.global/f24dfbcf-5d5a-489d-b6c0-b547e6c91644/asset.glb"></a-asset-item>
+                    <a-asset-item id="lion" src="https://cdn.glitch.global/f24dfbcf-5d5a-489d-b6c0-b547e6c91644/lion.glb"></a-asset-item>
                 </a-assets>
 
-                <a-marker preset="hiro">
+                <!-- Marcador para el Fénix -->
+                <a-marker preset="hiro" id="marker-phoenix">
                     <a-entity id="bird-model" gltf-model="#bird" scale="0.006 0.006 0.006"
+                              position="0.7 0 0" animation-mixer="loop: repeat"
+                              class="clickable" gesture-handler>
+                    </a-entity>
+                </a-marker>
+
+                <!-- Marcador para el León -->
+                <a-marker preset="kanji" id="marker-lion">
+                    <a-entity id="lion-model" gltf-model="#lion" scale="0.006 0.006 0.006"
                               position="0.7 0 0" animation-mixer="loop: repeat"
                               class="clickable" gesture-handler>
                     </a-entity>
@@ -34,17 +44,9 @@
         <!-- Contenedor del texto -->
         <div id="info-box">
             <button id="speak-btn" class="speak-button">Reproducir Texto</button>
-            <h2>Historia del Fénix</h2>
+            <h2 id="title">Historia del Fénix</h2>
             <p id="phoenix-text">
                 El fénix es un ave mítica que simboliza la inmortalidad, la resurrección y la vida después de la muerte.
-                Se dice que cuando el fénix siente que va a morir, construye un nido de ramas aromáticas y especias, se incendia y renace de sus cenizas.
-                <br><br>
-                Esta historia ha sido contada en muchas culturas, desde el antiguo Egipto hasta la mitología griega y romana.
-                En la cultura china, el fénix representa armonía y prosperidad.
-                <br><br>
-                En la actualidad, el fénix es un símbolo de superación, renacimiento y resiliencia. Se usa en literatura, cine y diversas formas de arte.
-                <br><br>
-                Se dice que cada 500 años el fénix resurge, recordándonos que siempre hay una oportunidad para empezar de nuevo.
             </p>
         </div>
     </div>
