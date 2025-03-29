@@ -38,7 +38,7 @@ document.querySelector("#marker-honestidad").addEventListener("markerFound", () 
     titleElement.innerText = texts.honestidad.title;
     textElement.innerText = texts.honestidad.content;
      // Restablecer escala al tamaño original del león
-    document.querySelector("#honestidad-model").setAttribute("scale", "0.006 0.006 0.006");
+    document.querySelector("#honestidad-model").setAttribute("scale", "1 1 1");
 });
 
 
