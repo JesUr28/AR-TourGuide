@@ -15,8 +15,7 @@ const texts = {
     },
     "honestidad": {
         title: "Valor Intitucional: HONESTIDAD",
-        content: "La Honestidad les da honor y decoro a las actividades realizadas, porque genera confianza, respeto y consideración por el trabajo."
-            "Es el valor que les da decoro y pudor a nuestras acciones y nos hace dignos de merecer honor, respeto y consideración."
+        content: "La Honestidad les da honor y decoro a las actividades realizadas, porque genera confianza, respeto y consideración por el trabajo. Es el valor que les da decoro y pudor a nuestras acciones y nos hace dignos de merecer honor, respeto y consideración."
     }
 };
 
