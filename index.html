@@ -21,6 +21,7 @@
                     <a-asset-item id="bird" src="https://cdn.glitch.global/f24dfbcf-5d5a-489d-b6c0-b547e6c91644/asset.glb"></a-asset-item>
                     <a-asset-item id="lion" src="https://cdn.glitch.global/f24dfbcf-5d5a-489d-b6c0-b547e6c91644/lion.glb"></a-asset-item>
                     <a-asset-item id="honestidad" src="https://cdn.glitch.global/f24dfbcf-5d5a-489d-b6c0-b547e6c91644/Honestidad.glb"></a-asset-item>
+                    <a-asset-item id="prudencia" src="https://cdn.glitch.global/f24dfbcf-5d5a-489d-b6c0-b547e6c91644/Prudencia.glb"></a-asset-item>
                 </a-assets>
 
                 <!-- Marcador para el Fénix (HIRO) -->
@@ -42,6 +43,14 @@
                  <!-- Marcador Personalizado para Honestidad -->
                 <a-marker type="pattern" url="markers/pattern-H.patt" id="marker-honestidad">
                     <a-entity id="honestidad-model" gltf-model="#honestidad" scale="1 1 1"
+                              position="0 0 0" animation-mixer="loop: repeat"
+                              class="clickable" gesture-handler>
+                    </a-entity>
+                </a-marker> 
+
+                <!-- Marcador Personalizado para prudencia -->
+                <a-marker type="pattern" url="markers/pattern-P.patt" id="marker-prudencia">
+                    <a-entity id="prudencia-model" gltf-model="#prudencia" scale="1 1 1"
                               position="0 0 0" animation-mixer="loop: repeat"
                               class="clickable" gesture-handler>
                     </a-entity>
