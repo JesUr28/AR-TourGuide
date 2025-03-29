@@ -12,6 +12,11 @@ const texts = {
     "lion": {
         title: "Historia del León",
         content: "El león es un símbolo de fuerza, valentía y liderazgo. Ha sido representado en diversas culturas como el rey de los animales, apareciendo en banderas, escudos de armas y mitologías alrededor del mundo."
+    },
+    "honestidad": {
+        title: "Valor Intitucional: HONESTIDAD",
+        content: "La Honestidad les da honor y decoro a las actividades realizadas, porque genera confianza, respeto y consideración por el trabajo."
+            "Es el valor que les da decoro y pudor a nuestras acciones y nos hace dignos de merecer honor, respeto y consideración."
     }
 };
 
@@ -30,6 +35,14 @@ document.querySelector("#marker-lion").addEventListener("markerFound", () => {
     document.querySelector("#lion-model").setAttribute("scale", "0.006 0.006 0.006");
 });
 
+document.querySelector("#marker-honestidad").addEventListener("markerFound", () => {
+    titleElement.innerText = texts.honestidad.title;
+    textElement.innerText = texts.honestidad.content;
+     // Restablecer escala al tamaño original del león
+    document.querySelector("#honestidad-model").setAttribute("scale", "0.006 0.006 0.006");
+});
+
+
 // Opción: Puedes hacer que desaparezca el texto cuando no haya marcador detectado
 document.querySelector("#marker-phoenix").addEventListener("markerLost", () => {
     titleElement.innerText = "";
@@ -37,6 +50,11 @@ document.querySelector("#marker-phoenix").addEventListener("markerLost", () => {
 });
 
 document.querySelector("#marker-lion").addEventListener("markerLost", () => {
+    titleElement.innerText = "";
+    textElement.innerText = "";
+});
+
+document.querySelector("#marker-honestidad").addEventListener("markerLost", () => {
     titleElement.innerText = "";
     textElement.innerText = "";
 });
