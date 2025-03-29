@@ -16,6 +16,10 @@ const texts = {
     "honestidad": {
         title: "Valor Intitucional: HONESTIDAD",
         content: "La Honestidad les da honor y decoro a las actividades realizadas, porque genera confianza, respeto y consideración por el trabajo. Es el valor que les da decoro y pudor a nuestras acciones y nos hace dignos de merecer honor, respeto y consideración."
+    },
+    "prudencia": {
+        title: "Valor Intitucional: PRUDENCIA",
+        content: "La Prudencia es el ejercicio pensado del ser y del actuar para el respeto de los otros; implica callar cuando no corresponde ni por autoridad ni por trabajo, o delatar o hablar o escribir o dar información sobre lo que no se me pregunta. La Prudencia es el valor del discernimiento sobre el bien y la forma para llevarlo a cabo y permite distinguir entre lo bueno y lo malo."
     }
 };
 
@@ -41,6 +45,13 @@ document.querySelector("#marker-honestidad").addEventListener("markerFound", () 
     document.querySelector("#honestidad-model").setAttribute("scale", "1 1 1");
 });
 
+document.querySelector("#marker-prudencia").addEventListener("markerFound", () => {
+    titleElement.innerText = texts.prudencia.title;
+    textElement.innerText = texts.prudencia.content;
+     // Restablecer escala al tamaño original del león
+    document.querySelector("#prudencia-model").setAttribute("scale", "1 1 1");
+});
+
 
 // Opción: Puedes hacer que desaparezca el texto cuando no haya marcador detectado
 document.querySelector("#marker-phoenix").addEventListener("markerLost", () => {
@@ -57,6 +68,14 @@ document.querySelector("#marker-honestidad").addEventListener("markerLost", () =
     titleElement.innerText = "";
     textElement.innerText = "";
 });
+
+document.querySelector("#marker-prudencia").addEventListener("markerLost", () => {
+    titleElement.innerText = "";
+    textElement.innerText = "";
+});
+
+
+
 
 // Función de texto a voz
 speakBtn.addEventListener('click', () => {
