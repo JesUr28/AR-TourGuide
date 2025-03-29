@@ -20,6 +20,10 @@ const texts = {
     "prudencia": {
         title: "Valor Intitucional: PRUDENCIA",
         content: "La Prudencia es el ejercicio pensado del ser y del actuar para el respeto de los otros; implica callar cuando no corresponde ni por autoridad ni por trabajo, o delatar o hablar o escribir o dar información sobre lo que no se me pregunta. La Prudencia es el valor del discernimiento sobre el bien y la forma para llevarlo a cabo y permite distinguir entre lo bueno y lo malo."
+    },
+    "justicia": {
+        title: "Valor Intitucional: JUSTICIA",
+        content: "La Justicia corresponde a la Universidad ser depositaria de la aplicación de la Justicia, entendida ésta como todas las acciones públicas y privadas dirigidas a los individuos para garantizar la igualdad, el respeto, la integridad, el libre desarrollo de la personalidad y el respeto por la vida, las creencias, los credos políticos, los derechos humanos, y el disfrute de condiciones de dignidad para estudiantes, profesores y administrativos, a la luz de su misión y visión en el marco legal y constitucional que nos rige. La Justicia considerada por los antiguos como la más excelsa de todas las virtudes, es un valor que nos inclina a dar a cada quien lo que le corresponde como propio según la recta razón."
     }
 };
 
@@ -52,6 +56,13 @@ document.querySelector("#marker-prudencia").addEventListener("markerFound", () =
     document.querySelector("#prudencia-model").setAttribute("scale", "1 1 1");
 });
 
+document.querySelector("#marker-justicia").addEventListener("markerFound", () => {
+    titleElement.innerText = texts.justicia.title;
+    textElement.innerText = texts.justicia.content;
+     // Restablecer escala al tamaño original del león
+    document.querySelector("#justicia-model").setAttribute("scale", "1 1 1");
+});
+
 
 // Opción: Puedes hacer que desaparezca el texto cuando no haya marcador detectado
 document.querySelector("#marker-phoenix").addEventListener("markerLost", () => {
@@ -70,6 +81,11 @@ document.querySelector("#marker-honestidad").addEventListener("markerLost", () =
 });
 
 document.querySelector("#marker-prudencia").addEventListener("markerLost", () => {
+    titleElement.innerText = "";
+    textElement.innerText = "";
+});
+
+document.querySelector("#marker-justicia").addEventListener("markerLost", () => {
     titleElement.innerText = "";
     textElement.innerText = "";
 });
