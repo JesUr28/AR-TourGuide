@@ -9,6 +9,12 @@
     <script src="https://raw.githack.com/AR-js-org/studio-backend/master/src/modules/marker/tools/gesture-detector.js"></script>
     <script src="https://raw.githack.com/AR-js-org/studio-backend/master/src/modules/marker/tools/gesture-handler.js"></script>
     <link rel="stylesheet" href="styles.css">
+    <style>
+        /* Estilos adicionales para asegurar que el modelo persistente sea visible */
+        .a-enter-vr {
+            display: none !important;
+        }
+    </style>
 </head>
 <body>
     <div id="container">
@@ -69,6 +75,7 @@
                     </a-entity>
                 </a-marker>
                 
+                <!-- Cámara -->
                 <a-entity camera></a-entity>
             </a-scene>
         </div>
@@ -105,5 +112,6 @@
     <script src="script.js"></script>
 </body>
 </html>
+
 
 
