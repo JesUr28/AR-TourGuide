@@ -199,3 +199,19 @@
 #desktop-warning button.close-btn:hover {
   background-color: #d32f2f;
 }
+
+/* Estilos para mejorar la interactividad de los modelos 3D */
+.clickable {
+  cursor: grab;
+}
+
+.clickable:active {
+  cursor: grabbing;
+}
+
+/* Ocultar elementos de AR.js que pueden interferir */
+.a-enter-vr,
+.a-orientation-modal {
+  display: none !important;
+}
+
