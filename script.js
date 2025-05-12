@@ -5,6 +5,7 @@ let activeMarker = null
 let isProcessingMarker = false // Flag para evitar procesamiento simultáneo de marcadores
 let persistentMode = false // Flag para modo persistente
 let lastScannedModelId = null // Para guardar el ID del último modelo escaneado
+let persistentModelEntity = null // Para guardar la referencia al modelo persistente
 
 const playBtn = document.getElementById("play-btn")
 const stopBtn = document.getElementById("stop-btn")
@@ -104,10 +105,38 @@ function stopSpeaking() {
   updateButtonState()
 }
 
-// Función para hacer que un modelo permanezca visible incluso cuando el marcador se pierde
-function makeModelPersistent(markerId) {
+// Función para crear un modelo persistente independiente
+function createPersistentModel(markerId) {
   const markerKey = markerId.replace("marker-", "")
+
+  // Obtener el marcador y el modelo original
   const marker = document.querySelector(`#${markerId}`)
+  const originalModel = document.querySelector(`#${markerKey}-model`)
+
+  if (!marker || !originalModel) return
+
+  // Si ya existe un modelo persistente, eliminarlo
+  if (persistentModelEntity) {
+    persistentModelEntity.parentNode.removeChild(persistentModelEntity)
+  }
+
+  // Crear un nuevo modelo persistente
+  persistentModelEntity = document.createElement("a-entity")
+  persistentModelEntity.id = `persistent-${markerKey}-model`
+  persistentModelEntity.setAttribute("gltf-model", `#${markerKey}`)
+  persistentModelEntity.setAttribute("scale", "1 1 1")
+  persistentModelEntity.setAttribute("position", "0 -1.5 -3")
+  persistentModelEntity.setAttribute("rotation", "0 0 0")
+  persistentModelEntity.setAttribute("animation-mixer", "loop: repeat")
+  persistentModelEntity.setAttribute("class", "clickable")
+  persistentModelEntity.setAttribute("gesture-handler", "")
+
+  // Añadir el modelo persistente a la escena (no al marcador)
+  const scene = document.querySelector("a-scene")
+  scene.appendChild(persistentModelEntity)
+
+  // Ocultar el modelo original
+  originalModel.setAttribute("visible", "false")
 
   // Guardar el ID del último modelo escaneado
   lastScannedModelId = markerKey
@@ -115,22 +144,8 @@ function makeModelPersistent(markerId) {
   // Activar el modo persistente
   persistentMode = true
 
-  // Configurar el marcador para que no oculte el modelo cuando se pierde
-  if (marker) {
-    // Obtener la entidad del modelo
-    const modelEntity = marker.querySelector(`#${markerKey}-model`)
-
-    if (modelEntity) {
-      // Asegurarse de que el modelo sea visible
-      modelEntity.setAttribute("visible", "true")
-
-      // Configurar el marcador para que no oculte el modelo cuando se pierde
-      marker.setAttribute("emitevents", "true")
-
-      // Actualizar los botones
-      updateButtonState()
-    }
-  }
+  // Actualizar los botones
+  updateButtonState()
 }
 
 // Función para mostrar el contenido del marcador
@@ -158,8 +173,8 @@ function showMarkerContent(markerId) {
   // Actualizar marcador activo
   activeMarker = markerId
 
-  // Hacer que el modelo permanezca visible
-  makeModelPersistent(markerId)
+  // Crear modelo persistente independiente
+  createPersistentModel(markerId)
 
   // Liberar el flag después de un breve retraso para evitar cambios rápidos
   setTimeout(() => {
@@ -190,20 +205,22 @@ function hideMarkerContent(markerId) {
 
 // Función para resetear al modo de escaneo
 function resetToScanMode() {
-  // Resetear el modo persistente
-  persistentMode = false
+  // Eliminar el modelo persistente si existe
+  if (persistentModelEntity) {
+    persistentModelEntity.parentNode.removeChild(persistentModelEntity)
+    persistentModelEntity = null
+  }
 
-  // Si hay un marcador activo, ocultar su modelo
+  // Mostrar todos los modelos originales
   if (lastScannedModelId) {
-    const marker = document.querySelector(`a-marker[id*="${lastScannedModelId}"]`)
-    if (marker) {
-      const modelEntity = marker.querySelector(`#${lastScannedModelId}-model`)
-      if (modelEntity) {
-        modelEntity.setAttribute("visible", "false")
-      }
+    const originalModel = document.querySelector(`#${lastScannedModelId}-model`)
+    if (originalModel) {
+      originalModel.setAttribute("visible", "true")
     }
   }
 
+  // Resetear el modo persistente
+  persistentMode = false
   lastScannedModelId = null
 
   // Ocultar título y texto
@@ -350,6 +367,7 @@ window.addEventListener("resize", checkDeviceAndShowWarning)
 document.getElementById("back-btn").addEventListener("click", () => {
   window.history.back()
 })
+
 
 
 
