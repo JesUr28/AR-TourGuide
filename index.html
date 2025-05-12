@@ -2,7 +2,6 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Modelo 3D en AR</title>
     <script src="https://aframe.io/releases/1.2.0/aframe.min.js"></script>
     <script src="https://cdn.jsdelivr.net/gh/jeromeetienne/AR.js/aframe/build/aframe-ar.min.js"></script>
@@ -11,16 +10,16 @@
     <script src="https://raw.githack.com/AR-js-org/studio-backend/master/src/modules/marker/tools/gesture-handler.js"></script>
     <link rel="stylesheet" href="styles.css">
 </head>
-<body style="margin: 0; overflow: hidden;">
+<body>
     <div id="container">
         <!-- Contenedor del modelo 3D -->
         <div id="model-container">
-            <a-scene embedded arjs="sourceType: webcam; debugUIEnabled: false;"
-                     vr-mode-ui="enabled: false" renderer="logarithmicDepthBuffer: true; alpha: true;"
+            <a-scene embedded arjs="sourceType: webcam; detectionMode: mono_and_matrix; debugUIEnabled: false; matrixCodeType: 3x3;"
+                     vr-mode-ui="enabled: false" renderer="logarithmicDepthBuffer: true; alpha: true"
                      gesture-detector>
                 <a-assets>
                     <a-asset-item id="honestidad" src="https://cdn.glitch.global/f24dfbcf-5d5a-489d-b6c0-b547e6c91644/HONESTIDADP1.glb"></a-asset-item>
-                    <a-asset-item id="respeto" src="https://cdn.glitch.global/f24dfbcf-5d5a-489d-b6c0-b547e6c91644/RESPETOP1.glb"></a-asset-item>
+                    <a-asset-item id="respeto" src="https://cdn.glitch.global/f24dfbcf-5d5a-489d-b6c0-b547e6c91644/RESPETOP1.glb"></a-asset-item>  <!-- prudencia -->
                     <a-asset-item id="justicia" src="https://cdn.glitch.global/f24dfbcf-5d5a-489d-b6c0-b547e6c91644/JUSTICIAP1.glb"></a-asset-item>
                     <a-asset-item id="compromiso" src="https://cdn.glitch.global/f24dfbcf-5d5a-489d-b6c0-b547e6c91644/COMPROMISOP1.glb"></a-asset-item>
                     <a-asset-item id="diligencia" src="https://cdn.glitch.global/f24dfbcf-5d5a-489d-b6c0-b547e6c91644/DILIGENCIAP1.glb"></a-asset-item>
@@ -28,49 +27,48 @@
                 </a-assets>
                 
                 <!-- Marcadores-->
-                <a-marker type="pattern" url="markers/pattern-H.patt" id="marker-honestidad">
+                <a-marker type="pattern" url="markers/pattern-H.patt" id="marker-honestidad" emitevents="true">
                     <a-entity id="honestidad-model" gltf-model="#honestidad" scale="1 1 1"
                               position="0 -1.5 0" animation-mixer="loop: repeat" 
                               class="clickable" gesture-handler>
                     </a-entity>
                 </a-marker>
                 
-                <a-marker type="pattern" url="markers/pattern-R.patt" id="marker-respeto">
+                <a-marker type="pattern" url="markers/pattern-R.patt" id="marker-respeto" emitevents="true">
                     <a-entity id="respeto-model" gltf-model="#respeto" scale="1 1 1"
                               position="0 -1.5 0" animation-mixer="loop: repeat" 
                               class="clickable" gesture-handler>
                     </a-entity>
                 </a-marker>
                 
-                <a-marker type="pattern" url="markers/pattern-J.patt" id="marker-justicia">
+                <a-marker type="pattern" url="markers/pattern-J.patt" id="marker-justicia" emitevents="true">
                     <a-entity id="justicia-model" gltf-model="#justicia" scale="1 1 1"
                               position="0 -1.5 0" animation-mixer="loop: repeat" 
                               class="clickable" gesture-handler>
                     </a-entity>
                 </a-marker>
 
-                <a-marker type="pattern" url="markers/pattern-C.patt" id="marker-compromiso">
+                <a-marker type="pattern" url="markers/pattern-C.patt" id="marker-compromiso" emitevents="true">
                     <a-entity id="compromiso-model" gltf-model="#compromiso" scale="1 1 1"
                               position="0 -1.5 0" animation-mixer="loop: repeat" 
                               class="clickable" gesture-handler>
                     </a-entity>
                 </a-marker>
                 
-                <a-marker type="pattern" url="markers/pattern-D.patt" id="marker-diligencia">
+                <a-marker type="pattern" url="markers/pattern-D.patt" id="marker-diligencia" emitevents="true">
                     <a-entity id="diligencia-model" gltf-model="#diligencia" scale="1 1 1"
                               position="0 -1.5 0" animation-mixer="loop: repeat" 
                               class="clickable" gesture-handler>
                     </a-entity>
                 </a-marker>
 
-                <a-marker type="pattern" url="markers/pattern-VR.patt" id="marker-veracidad">
+                <a-marker type="pattern" url="markers/pattern-VR.patt" id="marker-veracidad" emitevents="true">
                     <a-entity id="veracidad-model" gltf-model="#veracidad" scale="1 1 1"
                               position="0 -1.5 0" animation-mixer="loop: repeat" 
                               class="clickable" gesture-handler>
                     </a-entity>
                 </a-marker>
                 
-                <!-- Cámara -->
                 <a-entity camera></a-entity>
             </a-scene>
         </div>
@@ -107,6 +105,7 @@
     <script src="script.js"></script>
 </body>
 </html>
+
 
 
 
