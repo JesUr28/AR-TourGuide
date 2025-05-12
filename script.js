@@ -4,6 +4,7 @@ let isLoading = false
 let activeMarker = null
 let isProcessingMarker = false // Flag para evitar procesamiento simultáneo de marcadores
 let persistentMode = false // Flag para modo persistente
+let lastScannedModelId = null // Para guardar el ID del último modelo escaneado
 
 const playBtn = document.getElementById("play-btn")
 const stopBtn = document.getElementById("stop-btn")
@@ -103,6 +104,35 @@ function stopSpeaking() {
   updateButtonState()
 }
 
+// Función para hacer que un modelo permanezca visible incluso cuando el marcador se pierde
+function makeModelPersistent(markerId) {
+  const markerKey = markerId.replace("marker-", "")
+  const marker = document.querySelector(`#${markerId}`)
+
+  // Guardar el ID del último modelo escaneado
+  lastScannedModelId = markerKey
+
+  // Activar el modo persistente
+  persistentMode = true
+
+  // Configurar el marcador para que no oculte el modelo cuando se pierde
+  if (marker) {
+    // Obtener la entidad del modelo
+    const modelEntity = marker.querySelector(`#${markerKey}-model`)
+
+    if (modelEntity) {
+      // Asegurarse de que el modelo sea visible
+      modelEntity.setAttribute("visible", "true")
+
+      // Configurar el marcador para que no oculte el modelo cuando se pierde
+      marker.setAttribute("emitevents", "true")
+
+      // Actualizar los botones
+      updateButtonState()
+    }
+  }
+}
+
 // Función para mostrar el contenido del marcador
 function showMarkerContent(markerId) {
   // Si ya hay un marcador activo o estamos procesando otro, ignorar este
@@ -128,11 +158,8 @@ function showMarkerContent(markerId) {
   // Actualizar marcador activo
   activeMarker = markerId
 
-  // Activar el modo persistente
-  persistentMode = true
-
-  // Actualizar botones
-  updateButtonState()
+  // Hacer que el modelo permanezca visible
+  makeModelPersistent(markerId)
 
   // Liberar el flag después de un breve retraso para evitar cambios rápidos
   setTimeout(() => {
@@ -161,10 +188,31 @@ function hideMarkerContent(markerId) {
   }
 }
 
+// Función para ocultar todos los modelos 3D
+function hideAllModels() {
+  const modelIds = ["honestidad", "respeto", "justicia", "compromiso", "diligencia", "veracidad"]
+
+  modelIds.forEach((id) => {
+    // Obtener el modelo
+    const model = document.querySelector(`#${id}-model`)
+    if (model) {
+      // Ocultar el modelo
+      model.setAttribute("visible", "false")
+
+      // También podemos moverlo fuera de la vista como respaldo
+      model.setAttribute("position", "0 -1000 0")
+    }
+  })
+}
+
 // Función para resetear al modo de escaneo
 function resetToScanMode() {
+  // Ocultar todos los modelos 3D
+  hideAllModels()
+
   // Resetear el modo persistente
   persistentMode = false
+  lastScannedModelId = null
 
   // Ocultar título y texto
   titleElement.classList.add("hidden")
@@ -181,6 +229,9 @@ function resetToScanMode() {
 
   // Actualizar botones
   updateButtonState()
+
+  // Registrar en consola para depuración
+  console.log("Modo de escaneo restablecido. Todos los modelos deberían estar ocultos.")
 }
 
 // Detectar cuándo un marcador es visible
@@ -310,23 +361,3 @@ window.addEventListener("resize", checkDeviceAndShowWarning)
 document.getElementById("back-btn").addEventListener("click", () => {
   window.history.back()
 })
-
-// Añadir un mensaje de consola para verificar que el script se está cargando
-console.log("Script AR cargado correctamente")
-
-// Verificar que la cámara se inicie correctamente
-window.addEventListener("camera-init", (data) => {
-  console.log("Cámara AR.js inicializada")
-})
-
-// Capturar errores de la cámara
-window.addEventListener("camera-error", (error) => {
-  console.error("Error en la cámara AR.js:", error)
-})
-
-
-
-
-
-
-
