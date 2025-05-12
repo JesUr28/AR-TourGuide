@@ -5,6 +5,7 @@ let activeMarker = null
 let isProcessingMarker = false // Flag para evitar procesamiento simultáneo de marcadores
 let persistentMode = false // Flag para modo persistente
 let lastScannedModelId = null // Para guardar el ID del último modelo escaneado
+let lastSpeakingMarker = null // Para guardar el ID del marcador que está hablando actualmente
 
 const playBtn = document.getElementById("play-btn")
 const stopBtn = document.getElementById("stop-btn")
@@ -103,6 +104,7 @@ function hideLoadingState() {
 function stopSpeaking() {
   synth.cancel()
   isSpeaking = false
+  lastSpeakingMarker = null
   hideLoadingState()
   updateButtonState()
 }
@@ -161,8 +163,9 @@ function showMarkerContent(markerId) {
 
   isProcessingMarker = true
 
-  // Si hay una reproducción en curso, detenerla
-  if (isSpeaking) {
+  // Si hay una reproducción en curso y es un marcador diferente, detenerla
+  if (isSpeaking && lastSpeakingMarker && lastSpeakingMarker !== markerId) {
+    console.log(`Deteniendo reproducción porque se detectó un marcador diferente: ${markerId}`)
     stopSpeaking()
   }
 
@@ -213,11 +216,13 @@ function hideMarkerContent(markerId) {
     instructionMessage.classList.remove("hidden")
     // Resetear marcador activo
     activeMarker = null
-    // Ocultar botones y detener reproducción
+    // Ocultar botones (pero NO detener la reproducción)
     playBtn.classList.add("hidden")
     stopBtn.classList.add("hidden")
     scanNewBtn.classList.add("hidden")
-    stopSpeaking()
+
+    // No detenemos la reproducción aquí para que continúe incluso si se pierde el marcador
+    // La reproducción solo se detendrá si se detecta un marcador diferente
   }
 }
 
@@ -354,12 +359,14 @@ playBtn.addEventListener("click", () => {
       clearTimeout(loadingTimeout)
 
       isSpeaking = true
+      lastSpeakingMarker = activeMarker // Guardar el marcador que está hablando
       hideLoadingState()
       updateButtonState()
     }
 
     utterance.onend = () => {
       isSpeaking = false
+      lastSpeakingMarker = null
       updateButtonState()
     }
 
@@ -424,4 +431,5 @@ window.addEventListener("resize", checkDeviceAndShowWarning)
 document.getElementById("back-btn").addEventListener("click", () => {
   window.history.back()
 })
+
 
