@@ -4,6 +4,7 @@ let isLoading = false
 let activeMarker = null
 let isProcessingMarker = false // Flag para evitar procesamiento simultáneo de marcadores
 let persistentMode = false // Flag para modo persistente
+let lastScannedModelId = null // Para guardar el ID del último modelo escaneado
 
 const playBtn = document.getElementById("play-btn")
 const stopBtn = document.getElementById("stop-btn")
@@ -104,29 +105,37 @@ function stopSpeaking() {
   updateButtonState()
 }
 
+// Función para ocultar todos los modelos vinculados a marcadores
+function hideAllMarkerModels() {
+  const modelIds = ["honestidad", "respeto", "justicia", "compromiso", "diligencia", "veracidad"]
+  modelIds.forEach((id) => {
+    const model = document.querySelector(`#${id}-model`)
+    if (model) {
+      model.setAttribute("visible", "false")
+    }
+  })
+}
+
+// Función para mostrar un modelo específico vinculado a un marcador
+function showMarkerModel(modelId) {
+  const model = document.querySelector(`#${modelId}-model`)
+  if (model) {
+    model.setAttribute("visible", "true")
+  }
+}
+
 // Función para crear un modelo persistente
 function createPersistentModel(markerId) {
-  // Limpiar cualquier modelo persistente anterior
-  while (persistentModelContainer.firstChild) {
-    persistentModelContainer.removeChild(persistentModelContainer.firstChild)
-  }
-
   const markerKey = markerId.replace("marker-", "")
-  const originalModel = document.querySelector(`#${markerKey}-model`)
 
-  // Crear un nuevo modelo persistente
-  const persistentModel = document.createElement("a-entity")
-  persistentModel.setAttribute("gltf-model", `#${markerKey}`)
-  persistentModel.setAttribute("scale", "1 1 1")
-  persistentModel.setAttribute("position", "0 -1.5 0")
-  persistentModel.setAttribute("rotation", "0 0 0")
-  persistentModel.setAttribute("animation-mixer", "loop: repeat")
+  // Guardar el ID del último modelo escaneado
+  lastScannedModelId = `${markerKey}-model`
 
-  // Añadir el modelo al contenedor persistente
-  persistentModelContainer.appendChild(persistentModel)
+  // Ocultar todos los modelos vinculados a marcadores
+  hideAllMarkerModels()
 
-  // Hacer visible el contenedor persistente
-  persistentModelContainer.setAttribute("visible", "true")
+  // Mostrar solo el modelo vinculado al marcador actual
+  showMarkerModel(lastScannedModelId)
 
   // Activar el modo persistente
   persistentMode = true
@@ -195,16 +204,12 @@ function hideMarkerContent(markerId) {
 
 // Función para resetear al modo de escaneo
 function resetToScanMode() {
-  // Ocultar el modelo persistente
-  persistentModelContainer.setAttribute("visible", "false")
-
-  // Limpiar el contenedor persistente
-  while (persistentModelContainer.firstChild) {
-    persistentModelContainer.removeChild(persistentModelContainer.firstChild)
-  }
+  // Ocultar todos los modelos
+  hideAllMarkerModels()
 
   // Resetear el modo persistente
   persistentMode = false
+  lastScannedModelId = null
 
   // Ocultar título y texto
   titleElement.classList.add("hidden")
@@ -350,6 +355,7 @@ window.addEventListener("resize", checkDeviceAndShowWarning)
 document.getElementById("back-btn").addEventListener("click", () => {
   window.history.back()
 })
+
 
 
 
