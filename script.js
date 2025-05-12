@@ -1,122 +1,355 @@
-let synth = window.speechSynthesis;
-let isSpeaking = false;
-const speakBtn = document.getElementById('speak-btn');
-const textElement = document.getElementById('phoenix-text');
-const titleElement = document.getElementById('title');
+const synth = window.speechSynthesis
+let isSpeaking = false
+let isLoading = false
+let activeMarker = null
+let isProcessingMarker = false // Flag para evitar procesamiento simultáneo de marcadores
+let persistentMode = false // Flag para modo persistente
+
+const playBtn = document.getElementById("play-btn")
+const stopBtn = document.getElementById("stop-btn")
+const scanNewBtn = document.getElementById("scan-new-btn")
+const playText = document.getElementById("play-text")
+const loadingText = document.getElementById("loading-text")
+const textElement = document.getElementById("valor-text")
+const titleElement = document.getElementById("title")
+const instructionMessage = document.getElementById("instruction-message")
+const persistentModelContainer = document.getElementById("persistent-model-container")
 
 const texts = {
-    "phoenix": {
-        title: "Historia del Fénix",
-        content: "El fénix es un ave mítica que simboliza la inmortalidad, la resurrección y la vida después de la muerte. Se dice que cuando el fénix siente que va a morir, construye un nido de ramas aromáticas y especias, se incendia y renace de sus cenizas."
-    },
-    "lion": {
-        title: "Historia del León",
-        content: "El león es un símbolo de fuerza, valentía y liderazgo. Ha sido representado en diversas culturas como el rey de los animales, apareciendo en banderas, escudos de armas y mitologías alrededor del mundo."
-    },
-    "honestidad": {
-        title: "Valor Intitucional: HONESTIDAD",
-        content: "La Honestidad les da honor y decoro a las actividades realizadas, porque genera confianza, respeto y consideración por el trabajo. Es el valor que les da decoro y pudor a nuestras acciones y nos hace dignos de merecer honor, respeto y consideración."
-    },
-    "prudencia": {
-        title: "Valor Intitucional: PRUDENCIA",
-        content: "La Prudencia es el ejercicio pensado del ser y del actuar para el respeto de los otros; implica callar cuando no corresponde ni por autoridad ni por trabajo, o delatar o hablar o escribir o dar información sobre lo que no se me pregunta. La Prudencia es el valor del discernimiento sobre el bien y la forma para llevarlo a cabo y permite distinguir entre lo bueno y lo malo."
-    },
-    "justicia": {
-        title: "Valor Intitucional: JUSTICIA",
-        content: "La Justicia corresponde a la Universidad ser depositaria de la aplicación de la Justicia, entendida ésta como todas las acciones públicas y privadas dirigidas a los individuos para garantizar la igualdad, el respeto, la integridad, el libre desarrollo de la personalidad y el respeto por la vida, las creencias, los credos políticos, los derechos humanos, y el disfrute de condiciones de dignidad para estudiantes, profesores y administrativos, a la luz de su misión y visión en el marco legal y constitucional que nos rige. La Justicia considerada por los antiguos como la más excelsa de todas las virtudes, es un valor que nos inclina a dar a cada quien lo que le corresponde como propio según la recta razón."
+  honestidad: {
+    title: "Valor Intitucional: HONESTIDAD",
+    content:
+      "Actuar con transparencia, rectitud y coherencia entre lo que se piensa, se dice y se hace, fomentando la confianza y el respeto mutuo. La honestidad en la Universidad Popular del Cesar guía el comportamiento ético de todos sus miembros, promoviendo relaciones basadas en la verdad y la integridad, fundamentales para el desarrollo académico y humano.",
+  },
+  respeto: {
+    title: "Valor Intitucional: RESPETO",
+    content:
+      "Reconocer y valorar la dignidad, ideas, creencias y diferencias de los demás, manteniendo una convivencia armónica. En la Universidad Popular del Cesar, el respeto es un pilar esencial para construir una comunidad incluyente, tolerante y democrática, donde el diálogo y la aceptación de la diversidad enriquecen el proceso formativo.",
+  },
+  justicia: {
+    title: "Valor Intitucional: JUSTICIA",
+    content:
+      "Garantizar la equidad, la imparcialidad y el cumplimiento de los derechos y deberes de todos los miembros de la comunidad universitaria. La Universidad Popular del Cesar se compromete con una educación justa, donde se brinda igualdad de oportunidades y se vela por el bienestar común, contribuyendo a una sociedad más equilibrada y solidaria.",
+  },
+  compromiso: {
+    title: "Valor Intitucional: COMPROMISO",
+    content:
+      "Asumir con responsabilidad y entrega las tareas y metas institucionales, aportando al cumplimiento de la misión y visión universitaria. El compromiso en la Universidad Popular del Cesar refleja la disposición de sus miembros para contribuir activamente con el desarrollo personal, profesional y social desde su rol en la comunidad educativa.",
+  },
+
+  diligencia: {
+    title: "Valor Intitucional: DILIGENCIA",
+    content:
+      "Cumplir con esmero, responsabilidad y eficiencia las funciones y tareas asignadas, procurando siempre la excelencia. En la Universidad Popular del Cesar, la diligencia impulsa una cultura del trabajo bien hecho, del esfuerzo constante y del compromiso con la mejora continua en los procesos académicos y administrativos.",
+  },
+
+  veracidad: {
+    title: "Valor Intitucional: VERACIDAD",
+    content:
+      "Expresar siempre la verdad con responsabilidad y sin distorsiones, en la búsqueda del conocimiento y en las relaciones interpersonales. La veracidad en la Universidad Popular del Cesar es base para la confianza institucional, la credibilidad académica y el ejercicio crítico y reflexivo de la libertad de pensamiento.",
+  },
+}
+
+// Función para actualizar el estado de los botones
+function updateButtonState() {
+  // Ocultar todos los botones primero
+  playBtn.classList.add("hidden")
+  stopBtn.classList.add("hidden")
+  scanNewBtn.classList.add("hidden")
+
+  // Solo mostrar botones si hay un marcador activo
+  if (activeMarker) {
+    if (isSpeaking) {
+      // Si está reproduciendo, mostrar el botón de detener
+      stopBtn.classList.remove("hidden")
+    } else {
+      // Si no está reproduciendo, mostrar el botón de reproducir
+      playBtn.classList.remove("hidden")
+
+      // Asegurarse de que el botón muestre "Reproducir" y no "Cargando"
+      if (!isLoading) {
+        playText.classList.remove("hidden")
+        loadingText.classList.add("hidden")
+      }
     }
-};
+
+    // Mostrar el botón de escanear nuevo si estamos en modo persistente
+    if (persistentMode) {
+      scanNewBtn.classList.remove("hidden")
+    }
+  }
+}
+
+// Función para mostrar el estado de carga
+function showLoadingState() {
+  isLoading = true
+  playText.classList.add("hidden")
+  loadingText.classList.remove("hidden")
+  playBtn.disabled = true
+}
+
+// Función para ocultar el estado de carga
+function hideLoadingState() {
+  isLoading = false
+  playText.classList.remove("hidden")
+  loadingText.classList.add("hidden")
+  playBtn.disabled = false
+}
+
+// Función para detener la reproducción
+function stopSpeaking() {
+  synth.cancel()
+  isSpeaking = false
+  hideLoadingState()
+  updateButtonState()
+}
+
+// Función para crear un modelo persistente
+function createPersistentModel(markerId) {
+  // Limpiar cualquier modelo persistente anterior
+  while (persistentModelContainer.firstChild) {
+    persistentModelContainer.removeChild(persistentModelContainer.firstChild)
+  }
+
+  const markerKey = markerId.replace("marker-", "")
+  const originalModel = document.querySelector(`#${markerKey}-model`)
+
+  // Crear un nuevo modelo persistente
+  const persistentModel = document.createElement("a-entity")
+  persistentModel.setAttribute("gltf-model", `#${markerKey}`)
+  persistentModel.setAttribute("scale", "1 1 1")
+  persistentModel.setAttribute("position", "0 -1.5 0")
+  persistentModel.setAttribute("rotation", "0 0 0")
+  persistentModel.setAttribute("animation-mixer", "loop: repeat")
+
+  // Añadir el modelo al contenedor persistente
+  persistentModelContainer.appendChild(persistentModel)
+
+  // Hacer visible el contenedor persistente
+  persistentModelContainer.setAttribute("visible", "true")
+
+  // Activar el modo persistente
+  persistentMode = true
+
+  // Actualizar los botones
+  updateButtonState()
+}
+
+// Función para mostrar el contenido del marcador
+function showMarkerContent(markerId) {
+  // Si ya hay un marcador activo o estamos procesando otro, ignorar este
+  if (isProcessingMarker && activeMarker && activeMarker !== markerId) {
+    return
+  }
+
+  isProcessingMarker = true
+
+  const markerKey = markerId.replace("marker-", "")
+
+  // Ocultar mensaje de instrucción
+  instructionMessage.classList.add("hidden")
+
+  // Mostrar título y texto
+  titleElement.classList.remove("hidden")
+  textElement.classList.remove("hidden")
+
+  // Establecer contenido
+  titleElement.innerText = texts[markerKey].title
+  textElement.innerText = texts[markerKey].content
+
+  // Actualizar marcador activo
+  activeMarker = markerId
+
+  // Crear modelo persistente
+  createPersistentModel(markerId)
+
+  // Actualizar botones
+  updateButtonState()
+
+  // Liberar el flag después de un breve retraso para evitar cambios rápidos
+  setTimeout(() => {
+    isProcessingMarker = false
+  }, 500)
+}
+
+// Función para ocultar el contenido cuando se pierde un marcador
+function hideMarkerContent(markerId) {
+  // Si estamos en modo persistente, no ocultamos el contenido
+  if (persistentMode) return
+
+  if (activeMarker === markerId) {
+    // Ocultar título y texto
+    titleElement.classList.add("hidden")
+    textElement.classList.add("hidden")
+    // Mostrar mensaje de instrucción
+    instructionMessage.classList.remove("hidden")
+    // Resetear marcador activo
+    activeMarker = null
+    // Ocultar botones y detener reproducción
+    playBtn.classList.add("hidden")
+    stopBtn.classList.add("hidden")
+    scanNewBtn.classList.add("hidden")
+    stopSpeaking()
+  }
+}
+
+// Función para resetear al modo de escaneo
+function resetToScanMode() {
+  // Ocultar el modelo persistente
+  persistentModelContainer.setAttribute("visible", "false")
+
+  // Limpiar el contenedor persistente
+  while (persistentModelContainer.firstChild) {
+    persistentModelContainer.removeChild(persistentModelContainer.firstChild)
+  }
+
+  // Resetear el modo persistente
+  persistentMode = false
+
+  // Ocultar título y texto
+  titleElement.classList.add("hidden")
+  textElement.classList.add("hidden")
+
+  // Mostrar mensaje de instrucción
+  instructionMessage.classList.remove("hidden")
+
+  // Resetear marcador activo
+  activeMarker = null
+
+  // Detener cualquier reproducción
+  stopSpeaking()
+
+  // Actualizar botones
+  updateButtonState()
+}
 
 // Detectar cuándo un marcador es visible
-document.querySelector("#marker-phoenix").addEventListener("markerFound", () => {
-    titleElement.innerText = texts.phoenix.title;
-    textElement.innerText = texts.phoenix.content;
-    // Restablecer escala al tamaño original del ave
-    document.querySelector("#bird-model").setAttribute("scale", "0.006 0.006 0.006");
-});
-
-document.querySelector("#marker-lion").addEventListener("markerFound", () => {
-    titleElement.innerText = texts.lion.title;
-    textElement.innerText = texts.lion.content;
-     // Restablecer escala al tamaño original del león
-    document.querySelector("#lion-model").setAttribute("scale", "0.006 0.006 0.006");
-});
-
 document.querySelector("#marker-honestidad").addEventListener("markerFound", () => {
-    titleElement.innerText = texts.honestidad.title;
-    textElement.innerText = texts.honestidad.content;
-     // Restablecer escala al tamaño original del león
-    document.querySelector("#honestidad-model").setAttribute("scale", "1 1 1");
-});
-
-document.querySelector("#marker-prudencia").addEventListener("markerFound", () => {
-    titleElement.innerText = texts.prudencia.title;
-    textElement.innerText = texts.prudencia.content;
-     // Restablecer escala al tamaño original del león
-    document.querySelector("#prudencia-model").setAttribute("scale", "1 1 1");
-});
-
+  showMarkerContent("marker-honestidad")
+})
+document.querySelector("#marker-respeto").addEventListener("markerFound", () => {
+  showMarkerContent("marker-respeto")
+})
 document.querySelector("#marker-justicia").addEventListener("markerFound", () => {
-    titleElement.innerText = texts.justicia.title;
-    textElement.innerText = texts.justicia.content;
-     // Restablecer escala al tamaño original del león
-    document.querySelector("#justicia-model").setAttribute("scale", "1 1 1");
-});
+  showMarkerContent("marker-justicia")
+})
+document.querySelector("#marker-compromiso").addEventListener("markerFound", () => {
+  showMarkerContent("marker-compromiso")
+})
+document.querySelector("#marker-diligencia").addEventListener("markerFound", () => {
+  showMarkerContent("marker-diligencia")
+})
+document.querySelector("#marker-veracidad").addEventListener("markerFound", () => {
+  showMarkerContent("marker-veracidad")
+})
 
-
-// Opción: Puedes hacer que desaparezca el texto cuando no haya marcador detectado
-document.querySelector("#marker-phoenix").addEventListener("markerLost", () => {
-    titleElement.innerText = "";
-    textElement.innerText = "";
-});
-
-document.querySelector("#marker-lion").addEventListener("markerLost", () => {
-    titleElement.innerText = "";
-    textElement.innerText = "";
-});
-
+// Detectar cuándo un marcador se pierde
 document.querySelector("#marker-honestidad").addEventListener("markerLost", () => {
-    titleElement.innerText = "";
-    textElement.innerText = "";
-});
-
-document.querySelector("#marker-prudencia").addEventListener("markerLost", () => {
-    titleElement.innerText = "";
-    textElement.innerText = "";
-});
-
+  hideMarkerContent("marker-honestidad")
+})
+document.querySelector("#marker-respeto").addEventListener("markerLost", () => {
+  hideMarkerContent("marker-respeto")
+})
 document.querySelector("#marker-justicia").addEventListener("markerLost", () => {
-    titleElement.innerText = "";
-    textElement.innerText = "";
-});
+  hideMarkerContent("marker-justicia")
+})
+document.querySelector("#marker-compromiso").addEventListener("markerLost", () => {
+  hideMarkerContent("marker-compromiso")
+})
+document.querySelector("#marker-diligencia").addEventListener("markerLost", () => {
+  hideMarkerContent("marker-diligencia")
+})
+document.querySelector("#marker-veracidad").addEventListener("markerLost", () => {
+  hideMarkerContent("marker-veracidad")
+})
 
+// Función para iniciar la reproducción
+playBtn.addEventListener("click", () => {
+  if (textElement.innerText && !isLoading) {
+    // Mostrar estado de carga
+    showLoadingState()
 
+    const utterance = new SpeechSynthesisUtterance(textElement.innerText)
+    utterance.lang = "es-ES"
+    utterance.rate = 1.0
+    utterance.pitch = 1.0
 
+    const loadingTimeout = setTimeout(() => {
+      hideLoadingState()
+    }, 5000) // Máximo 5 segundos esperando que empiece a hablar
 
-// Función de texto a voz
-speakBtn.addEventListener('click', () => {
-    if (isSpeaking) {
-        synth.cancel();
-        isSpeaking = false;
-        speakBtn.innerText = "Reproducir Texto";
-    } else {
-        const utterance = new SpeechSynthesisUtterance(textElement.innerText);
-        utterance.lang = 'es-ES';
-        utterance.rate = 1.0;
-        utterance.pitch = 1.0;
+    utterance.onstart = () => {
+      // Cancelar el timeout ya que la reproducción ha comenzado
+      clearTimeout(loadingTimeout)
 
-        utterance.onstart = () => {
-            isSpeaking = true;
-            speakBtn.innerText = "Detener Reproducción";
-        };
-
-        utterance.onend = () => {
-            isSpeaking = false;
-            speakBtn.innerText = "Reproducir Texto";
-        };
-
-        synth.speak(utterance);
+      isSpeaking = true
+      hideLoadingState()
+      updateButtonState()
     }
-});
+
+    utterance.onend = () => {
+      isSpeaking = false
+      updateButtonState()
+    }
+
+    synth.speak(utterance)
+  }
+})
+
+// Función para detener la reproducción
+stopBtn.addEventListener("click", () => {
+  stopSpeaking()
+})
+
+// Función para escanear un nuevo marcador
+scanNewBtn.addEventListener("click", () => {
+  resetToScanMode()
+})
+
+// prevenir zoom en dispositivos iOS
+document.addEventListener("gesturestart", (e) => {
+  e.preventDefault()
+})
+
+// Precarga de voces para mejorar el tiempo de respuesta
+window.addEventListener("DOMContentLoaded", () => {
+  if (speechSynthesis.onvoiceschanged !== undefined) {
+    speechSynthesis.onvoiceschanged = () => {
+      speechSynthesis.getVoices()
+    }
+  }
+})
+
+// Detección de dispositivo móvil y mostrar advertencia en pantallas grandes
+function isMobileDevice() {
+  return (
+    window.innerWidth <= 768 ||
+    /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)
+  )
+}
+
+function checkDeviceAndShowWarning() {
+  const desktopWarning = document.getElementById("desktop-warning")
+  const container = document.getElementById("container")
+
+  if (!isMobileDevice()) {
+    desktopWarning.style.display = "flex"
+    // Ocultar completamente el contenedor principal para que no se vea la cámara
+    container.style.display = "none"
+  } else {
+    desktopWarning.style.display = "none"
+    container.style.display = "flex"
+  }
+}
+
+// Verificar al cargar la página y cuando cambie el tamaño de la ventana
+window.addEventListener("load", checkDeviceAndShowWarning)
+window.addEventListener("resize", checkDeviceAndShowWarning)
+
+// Configurar botones de la advertencia
+document.getElementById("back-btn").addEventListener("click", () => {
+  window.history.back()
+})
+
 
 
