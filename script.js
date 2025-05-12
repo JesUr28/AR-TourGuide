@@ -311,6 +311,20 @@ document.getElementById("back-btn").addEventListener("click", () => {
   window.history.back()
 })
 
+// Añadir un mensaje de consola para verificar que el script se está cargando
+console.log("Script AR cargado correctamente")
+
+// Verificar que la cámara se inicie correctamente
+window.addEventListener("camera-init", (data) => {
+  console.log("Cámara AR.js inicializada")
+})
+
+// Capturar errores de la cámara
+window.addEventListener("camera-error", (error) => {
+  console.error("Error en la cámara AR.js:", error)
+})
+
+
 
 
 
