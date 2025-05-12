@@ -4,8 +4,6 @@ let isLoading = false
 let activeMarker = null
 let isProcessingMarker = false // Flag para evitar procesamiento simultáneo de marcadores
 let persistentMode = false // Flag para modo persistente
-let lastScannedModelId = null // Para guardar el ID del último modelo escaneado
-let persistentModelEntity = null // Para guardar la referencia al modelo persistente
 
 const playBtn = document.getElementById("play-btn")
 const stopBtn = document.getElementById("stop-btn")
@@ -105,49 +103,6 @@ function stopSpeaking() {
   updateButtonState()
 }
 
-// Función para crear un modelo persistente independiente
-function createPersistentModel(markerId) {
-  const markerKey = markerId.replace("marker-", "")
-
-  // Obtener el marcador y el modelo original
-  const marker = document.querySelector(`#${markerId}`)
-  const originalModel = document.querySelector(`#${markerKey}-model`)
-
-  if (!marker || !originalModel) return
-
-  // Si ya existe un modelo persistente, eliminarlo
-  if (persistentModelEntity) {
-    persistentModelEntity.parentNode.removeChild(persistentModelEntity)
-  }
-
-  // Crear un nuevo modelo persistente
-  persistentModelEntity = document.createElement("a-entity")
-  persistentModelEntity.id = `persistent-${markerKey}-model`
-  persistentModelEntity.setAttribute("gltf-model", `#${markerKey}`)
-  persistentModelEntity.setAttribute("scale", "1 1 1")
-  persistentModelEntity.setAttribute("position", "0 -1.5 -3")
-  persistentModelEntity.setAttribute("rotation", "0 0 0")
-  persistentModelEntity.setAttribute("animation-mixer", "loop: repeat")
-  persistentModelEntity.setAttribute("class", "clickable")
-  persistentModelEntity.setAttribute("gesture-handler", "")
-
-  // Añadir el modelo persistente a la escena (no al marcador)
-  const scene = document.querySelector("a-scene")
-  scene.appendChild(persistentModelEntity)
-
-  // Ocultar el modelo original
-  originalModel.setAttribute("visible", "false")
-
-  // Guardar el ID del último modelo escaneado
-  lastScannedModelId = markerKey
-
-  // Activar el modo persistente
-  persistentMode = true
-
-  // Actualizar los botones
-  updateButtonState()
-}
-
 // Función para mostrar el contenido del marcador
 function showMarkerContent(markerId) {
   // Si ya hay un marcador activo o estamos procesando otro, ignorar este
@@ -173,8 +128,11 @@ function showMarkerContent(markerId) {
   // Actualizar marcador activo
   activeMarker = markerId
 
-  // Crear modelo persistente independiente
-  createPersistentModel(markerId)
+  // Activar el modo persistente
+  persistentMode = true
+
+  // Actualizar botones
+  updateButtonState()
 
   // Liberar el flag después de un breve retraso para evitar cambios rápidos
   setTimeout(() => {
@@ -205,23 +163,8 @@ function hideMarkerContent(markerId) {
 
 // Función para resetear al modo de escaneo
 function resetToScanMode() {
-  // Eliminar el modelo persistente si existe
-  if (persistentModelEntity) {
-    persistentModelEntity.parentNode.removeChild(persistentModelEntity)
-    persistentModelEntity = null
-  }
-
-  // Mostrar todos los modelos originales
-  if (lastScannedModelId) {
-    const originalModel = document.querySelector(`#${lastScannedModelId}-model`)
-    if (originalModel) {
-      originalModel.setAttribute("visible", "true")
-    }
-  }
-
   // Resetear el modo persistente
   persistentMode = false
-  lastScannedModelId = null
 
   // Ocultar título y texto
   titleElement.classList.add("hidden")
@@ -367,6 +310,7 @@ window.addEventListener("resize", checkDeviceAndShowWarning)
 document.getElementById("back-btn").addEventListener("click", () => {
   window.history.back()
 })
+
 
 
 
