@@ -192,12 +192,11 @@
   background-color: #45a049;
 }
 
-#desktop-warning button.close-btn {
-  background-color: #f44336;
-}
-
-#desktop-warning button.close-btn:hover {
-  background-color: #d32f2f;
+/* Estilo para ocultar modelos */
+.hidden-model {
+  display: none !important;
+  visibility: hidden !important;
+  opacity: 0 !important;
 }
 
 
