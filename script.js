@@ -1,3 +1,4 @@
+// Eliminar variables redundantes y simplificar el código
 const synth = window.speechSynthesis
 let isSpeaking = false
 let isLoading = false
@@ -5,7 +6,6 @@ let activeMarker = null
 let isProcessingMarker = false // Flag para evitar procesamiento simultáneo de marcadores
 let persistentMode = false // Flag para modo persistente
 let lastScannedModelId = null // Para guardar el ID del último modelo escaneado
-let lastSpeakingMarker = null // Para guardar el ID del marcador que está hablando actualmente
 
 const playBtn = document.getElementById("play-btn")
 const stopBtn = document.getElementById("stop-btn")
@@ -40,13 +40,11 @@ const texts = {
     content:
       "Asumir con responsabilidad y entrega las tareas y metas institucionales, aportando al cumplimiento de la misión y visión universitaria. El compromiso en la Universidad Popular del Cesar refleja la disposición de sus miembros para contribuir activamente con el desarrollo personal, profesional y social desde su rol en la comunidad educativa.",
   },
-
   diligencia: {
     title: "Valor Intitucional: DILIGENCIA",
     content:
       "Cumplir con esmero, responsabilidad y eficiencia las funciones y tareas asignadas, procurando siempre la excelencia. En la Universidad Popular del Cesar, la diligencia impulsa una cultura del trabajo bien hecho, del esfuerzo constante y del compromiso con la mejora continua en los procesos académicos y administrativos.",
   },
-
   veracidad: {
     title: "Valor Intitucional: VERACIDAD",
     content:
@@ -84,7 +82,7 @@ function updateButtonState() {
   }
 }
 
-// Función para mostrar el estado de carga
+// Funciones para gestionar el estado de carga
 function showLoadingState() {
   isLoading = true
   playText.classList.add("hidden")
@@ -92,7 +90,6 @@ function showLoadingState() {
   playBtn.disabled = true
 }
 
-// Función para ocultar el estado de carga
 function hideLoadingState() {
   isLoading = false
   playText.classList.remove("hidden")
@@ -104,7 +101,6 @@ function hideLoadingState() {
 function stopSpeaking() {
   synth.cancel()
   isSpeaking = false
-  lastSpeakingMarker = null
   hideLoadingState()
   updateButtonState()
 }
@@ -148,8 +144,6 @@ function makeModelPersistent(markerId) {
 
       // Actualizar los botones
       updateButtonState()
-
-      console.log(`Modelo ${markerKey} hecho persistente y visible en posición ${originalModelPosition}`)
     }
   }
 }
@@ -164,8 +158,7 @@ function showMarkerContent(markerId) {
   isProcessingMarker = true
 
   // Si hay una reproducción en curso y es un marcador diferente, detenerla
-  if (isSpeaking && lastSpeakingMarker && lastSpeakingMarker !== markerId) {
-    console.log(`Deteniendo reproducción porque se detectó un marcador diferente: ${markerId}`)
+  if (isSpeaking && activeMarker && activeMarker !== markerId) {
     stopSpeaking()
   }
 
@@ -216,13 +209,8 @@ function hideMarkerContent(markerId) {
     instructionMessage.classList.remove("hidden")
     // Resetear marcador activo
     activeMarker = null
-    // Ocultar botones (pero NO detener la reproducción)
-    playBtn.classList.add("hidden")
-    stopBtn.classList.add("hidden")
-    scanNewBtn.classList.add("hidden")
-
-    // No detenemos la reproducción aquí para que continúe incluso si se pierde el marcador
-    // La reproducción solo se detendrá si se detecta un marcador diferente
+    // Ocultar botones
+    updateButtonState()
   }
 }
 
@@ -231,16 +219,10 @@ function hideAllModels() {
   const modelIds = ["honestidad", "respeto", "justicia", "compromiso", "diligencia", "veracidad"]
 
   modelIds.forEach((id) => {
-    // Obtener el modelo
     const model = document.querySelector(`#${id}-model`)
     if (model) {
-      // Ocultar el modelo
       model.setAttribute("visible", "false")
-
-      // Añadir clase para ocultar
       model.classList.add("hidden-model")
-
-      console.log(`Modelo ${id} ocultado`)
     }
   })
 }
@@ -250,99 +232,50 @@ function resetModelsForDetection() {
   const modelIds = ["honestidad", "respeto", "justicia", "compromiso", "diligencia", "veracidad"]
 
   modelIds.forEach((id) => {
-    // Obtener el modelo
     const model = document.querySelector(`#${id}-model`)
     if (model) {
-      // Restaurar la posición original
       model.setAttribute("position", originalModelPosition)
-
-      // Eliminar clase que oculta
       model.classList.remove("hidden-model")
-
-      // El modelo sigue invisible hasta que se detecte el marcador
       model.setAttribute("visible", "false")
-
-      console.log(`Modelo ${id} preparado para detección`)
     }
   })
 }
 
 // Función para resetear al modo de escaneo
 function resetToScanMode() {
-  // Ocultar todos los modelos 3D
   hideAllModels()
-
-  // Preparar modelos para ser detectados nuevamente
   resetModelsForDetection()
 
-  // Resetear el modo persistente
   persistentMode = false
   lastScannedModelId = null
 
-  // Ocultar título y texto
   titleElement.classList.add("hidden")
   textElement.classList.add("hidden")
-
-  // Mostrar mensaje de instrucción
   instructionMessage.classList.remove("hidden")
 
-  // Resetear marcador activo
   activeMarker = null
-
-  // Detener cualquier reproducción
   stopSpeaking()
-
-  // Actualizar botones
   updateButtonState()
-
-  // Registrar en consola para depuración
-  console.log("Modo de escaneo restablecido. Todos los modelos ocultos y preparados para detección.")
 }
 
-// Detectar cuándo un marcador es visible
-document.querySelector("#marker-honestidad").addEventListener("markerFound", () => {
-  showMarkerContent("marker-honestidad")
-})
-document.querySelector("#marker-respeto").addEventListener("markerFound", () => {
-  showMarkerContent("marker-respeto")
-})
-document.querySelector("#marker-justicia").addEventListener("markerFound", () => {
-  showMarkerContent("marker-justicia")
-})
-document.querySelector("#marker-compromiso").addEventListener("markerFound", () => {
-  showMarkerContent("marker-compromiso")
-})
-document.querySelector("#marker-diligencia").addEventListener("markerFound", () => {
-  showMarkerContent("marker-diligencia")
-})
-document.querySelector("#marker-veracidad").addEventListener("markerFound", () => {
-  showMarkerContent("marker-veracidad")
-})
+// Configurar eventos para todos los marcadores
+const markerIds = ["honestidad", "respeto", "justicia", "compromiso", "diligencia", "veracidad"]
 
-// Detectar cuándo un marcador se pierde
-document.querySelector("#marker-honestidad").addEventListener("markerLost", () => {
-  hideMarkerContent("marker-honestidad")
-})
-document.querySelector("#marker-respeto").addEventListener("markerLost", () => {
-  hideMarkerContent("marker-respeto")
-})
-document.querySelector("#marker-justicia").addEventListener("markerLost", () => {
-  hideMarkerContent("marker-justicia")
-})
-document.querySelector("#marker-compromiso").addEventListener("markerLost", () => {
-  hideMarkerContent("marker-compromiso")
-})
-document.querySelector("#marker-diligencia").addEventListener("markerLost", () => {
-  hideMarkerContent("marker-diligencia")
-})
-document.querySelector("#marker-veracidad").addEventListener("markerLost", () => {
-  hideMarkerContent("marker-veracidad")
+markerIds.forEach((id) => {
+  const marker = document.querySelector(`#marker-${id}`)
+  if (marker) {
+    marker.addEventListener("markerFound", () => {
+      showMarkerContent(`marker-${id}`)
+    })
+    marker.addEventListener("markerLost", () => {
+      hideMarkerContent(`marker-${id}`)
+    })
+  }
 })
 
 // Función para iniciar la reproducción
 playBtn.addEventListener("click", () => {
   if (textElement.innerText && !isLoading) {
-    // Mostrar estado de carga
     showLoadingState()
 
     const utterance = new SpeechSynthesisUtterance(textElement.innerText)
@@ -355,18 +288,14 @@ playBtn.addEventListener("click", () => {
     }, 5000) // Máximo 5 segundos esperando que empiece a hablar
 
     utterance.onstart = () => {
-      // Cancelar el timeout ya que la reproducción ha comenzado
       clearTimeout(loadingTimeout)
-
       isSpeaking = true
-      lastSpeakingMarker = activeMarker // Guardar el marcador que está hablando
       hideLoadingState()
       updateButtonState()
     }
 
     utterance.onend = () => {
       isSpeaking = false
-      lastSpeakingMarker = null
       updateButtonState()
     }
 
@@ -375,16 +304,12 @@ playBtn.addEventListener("click", () => {
 })
 
 // Función para detener la reproducción
-stopBtn.addEventListener("click", () => {
-  stopSpeaking()
-})
+stopBtn.addEventListener("click", stopSpeaking)
 
 // Función para escanear un nuevo marcador
-scanNewBtn.addEventListener("click", () => {
-  resetToScanMode()
-})
+scanNewBtn.addEventListener("click", resetToScanMode)
 
-// prevenir zoom en dispositivos iOS
+// Prevenir zoom en dispositivos iOS
 document.addEventListener("gesturestart", (e) => {
   e.preventDefault()
 })
@@ -415,7 +340,6 @@ function checkDeviceAndShowWarning() {
 
   if (!isMobileDevice()) {
     desktopWarning.style.display = "flex"
-    // Ocultar completamente el contenedor principal para que no se vea la cámara
     container.style.display = "none"
   } else {
     desktopWarning.style.display = "none"
@@ -431,5 +355,3 @@ window.addEventListener("resize", checkDeviceAndShowWarning)
 document.getElementById("back-btn").addEventListener("click", () => {
   window.history.back()
 })
-
-
