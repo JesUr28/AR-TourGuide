@@ -209,9 +209,12 @@
   cursor: grabbing;
 }
 
-/* Ocultar elementos de AR.js que pueden interferir */
-.a-enter-vr,
-.a-orientation-modal {
-  display: none !important;
+/* Asegurarse de que la escena AR.js ocupe todo el espacio disponible */
+.a-canvas {
+  width: 100% !important;
+  height: 100% !important;
+  position: absolute !important;
+  top: 0 !important;
+  left: 0 !important;
 }
 
