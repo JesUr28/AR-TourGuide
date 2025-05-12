@@ -130,6 +130,14 @@ function makeModelPersistent(markerId) {
       // Asegurarse de que el modelo esté en la posición correcta
       modelEntity.setAttribute("position", originalModelPosition)
 
+      // Aplicar filtro de suavizado para reducir la vibración
+      modelEntity.setAttribute("animation__filter", {
+        property: "position",
+        dur: 100,
+        easing: "linear",
+        loop: false,
+      })
+
       // Eliminar cualquier clase que pueda estar ocultando el modelo
       modelEntity.classList.remove("hidden-model")
 
@@ -153,7 +161,21 @@ function showMarkerContent(markerId) {
 
   isProcessingMarker = true
 
+  // Si hay una reproducción en curso, detenerla
+  if (isSpeaking) {
+    stopSpeaking()
+  }
+
   const markerKey = markerId.replace("marker-", "")
+
+  // Si estamos cambiando de marcador, ocultar el modelo anterior
+  if (activeMarker && activeMarker !== markerId && lastScannedModelId) {
+    const previousModelId = activeMarker.replace("marker-", "")
+    const previousModel = document.querySelector(`#${previousModelId}-model`)
+    if (previousModel) {
+      previousModel.setAttribute("visible", "false")
+    }
+  }
 
   // Ocultar mensaje de instrucción
   instructionMessage.classList.add("hidden")
@@ -402,3 +424,4 @@ window.addEventListener("resize", checkDeviceAndShowWarning)
 document.getElementById("back-btn").addEventListener("click", () => {
   window.history.back()
 })
+
