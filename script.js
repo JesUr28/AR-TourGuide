@@ -165,8 +165,8 @@ function resetModelTransform(markerId) {
       // Restablecer la escala original
       modelEntity.setAttribute("scale", originalModelScale)
 
-      // Restablecer la rotación a 0
-      modelEntity.setAttribute("rotation", "0 0 0")
+      // NO restablecer la rotación para permitir que la animación continúe
+      // modelEntity.setAttribute("rotation", "0 0 0")
 
       console.log(`Modelo ${markerKey} restablecido a su tamaño y posición original`)
     }
@@ -265,7 +265,8 @@ function resetModelsForDetection() {
     if (model) {
       model.setAttribute("position", originalModelPosition)
       model.setAttribute("scale", originalModelScale)
-      model.setAttribute("rotation", "0 0 0")
+      // NO restablecer la rotación
+      // model.setAttribute("rotation", "0 0 0")
       model.classList.remove("hidden-model")
       model.setAttribute("visible", "false")
     }
@@ -386,4 +387,3 @@ window.addEventListener("resize", checkDeviceAndShowWarning)
 document.getElementById("back-btn").addEventListener("click", () => {
   window.history.back()
 })
-
