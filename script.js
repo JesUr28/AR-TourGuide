@@ -15,6 +15,9 @@ const textElement = document.getElementById("valor-text")
 const titleElement = document.getElementById("title")
 const instructionMessage = document.getElementById("instruction-message")
 
+// Posición original de los modelos
+const originalModelPosition = "0 -1.5 0"
+
 const texts = {
   honestidad: {
     title: "Valor Intitucional: HONESTIDAD",
@@ -124,11 +127,19 @@ function makeModelPersistent(markerId) {
       // Asegurarse de que el modelo sea visible
       modelEntity.setAttribute("visible", "true")
 
+      // Asegurarse de que el modelo esté en la posición correcta
+      modelEntity.setAttribute("position", originalModelPosition)
+
+      // Eliminar cualquier clase que pueda estar ocultando el modelo
+      modelEntity.classList.remove("hidden-model")
+
       // Configurar el marcador para que no oculte el modelo cuando se pierde
       marker.setAttribute("emitevents", "true")
 
       // Actualizar los botones
       updateButtonState()
+
+      console.log(`Modelo ${markerKey} hecho persistente y visible en posición ${originalModelPosition}`)
     }
   }
 }
@@ -199,8 +210,32 @@ function hideAllModels() {
       // Ocultar el modelo
       model.setAttribute("visible", "false")
 
-      // También podemos moverlo fuera de la vista como respaldo
-      model.setAttribute("position", "0 -1000 0")
+      // Añadir clase para ocultar
+      model.classList.add("hidden-model")
+
+      console.log(`Modelo ${id} ocultado`)
+    }
+  })
+}
+
+// Función para preparar todos los modelos para ser detectados nuevamente
+function resetModelsForDetection() {
+  const modelIds = ["honestidad", "respeto", "justicia", "compromiso", "diligencia", "veracidad"]
+
+  modelIds.forEach((id) => {
+    // Obtener el modelo
+    const model = document.querySelector(`#${id}-model`)
+    if (model) {
+      // Restaurar la posición original
+      model.setAttribute("position", originalModelPosition)
+
+      // Eliminar clase que oculta
+      model.classList.remove("hidden-model")
+
+      // El modelo sigue invisible hasta que se detecte el marcador
+      model.setAttribute("visible", "false")
+
+      console.log(`Modelo ${id} preparado para detección`)
     }
   })
 }
@@ -209,6 +244,9 @@ function hideAllModels() {
 function resetToScanMode() {
   // Ocultar todos los modelos 3D
   hideAllModels()
+
+  // Preparar modelos para ser detectados nuevamente
+  resetModelsForDetection()
 
   // Resetear el modo persistente
   persistentMode = false
@@ -231,7 +269,7 @@ function resetToScanMode() {
   updateButtonState()
 
   // Registrar en consola para depuración
-  console.log("Modo de escaneo restablecido. Todos los modelos deberían estar ocultos.")
+  console.log("Modo de escaneo restablecido. Todos los modelos ocultos y preparados para detección.")
 }
 
 // Detectar cuándo un marcador es visible
@@ -329,6 +367,9 @@ window.addEventListener("DOMContentLoaded", () => {
       speechSynthesis.getVoices()
     }
   }
+
+  // Asegurarse de que todos los modelos estén preparados para detección al cargar
+  resetModelsForDetection()
 })
 
 // Detección de dispositivo móvil y mostrar advertencia en pantallas grandes
