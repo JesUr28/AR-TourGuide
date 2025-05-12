@@ -1,55 +1,201 @@
 /* Contenedor principal: divide la pantalla en dos partes */
 #container {
-    display: flex;
-    flex-direction: column;
-    height: 100vh;
-    margin: 0;
-    overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  margin: 0;
+  overflow: hidden;
 }
 
 /* Parte superior: contiene el modelo 3D */
 #model-container {
-    flex: 1;
-    position: relative;
+  flex: 1;
+  position: relative;
 }
 
 /* Parte inferior: contiene el texto */
 #info-box {
-    flex: 1;
-    background: rgba(0, 0, 0, 0.5);
-    color: white;
-    padding: 20px;
-    padding-bottom: 120px;
-    overflow-y: auto;
-    font-size: 16px;
-    text-align: justify;
-    border-top: 2px solid white;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
+  flex: 1;
+  background: rgba(0, 0, 0, 0.5);
+  color: white;
+  padding: 20px;
+  padding-bottom: 120px;
+  overflow-y: auto;
+  font-size: 16px;
+  text-align: justify;
+  border-top: 2px solid white;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 }
 
 #info-box h2 {
-    text-align: center;
+  text-align: center;
 }
 
-#info-box h2, #info-box p {
-    max-width: 300px;
-    width: 90%;
+#info-box h2,
+#info-box p {
+  max-width: 300px;
+  width: 90%;
+}
+
+/* Contenedor de botones */
+.button-container {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 10px;
+  margin-bottom: 15px;
+  width: 100%;
 }
 
 /* Botón de reproducción */
 .speak-button {
-    margin-top: 15px;
-    padding: 10px 20px;
-    background-color: #4CAF50;
-    color: white;
-    border: none;
-    cursor: pointer;
-    border-radius: 5px;
-    font-size: 16px;
+  padding: 10px 20px;
+  background-color: #4caf50;
+  color: white;
+  border: none;
+  cursor: pointer;
+  border-radius: 5px;
+  font-size: 16px;
+  min-width: 150px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
 
 .speak-button:hover {
-    background-color: #45a049;
+  background-color: #45a049;
+}
+
+/* Clase para ocultar elementos */
+.hidden {
+  display: none !important;
+}
+
+/* Estilos específicos para el botón de detener */
+#stop-btn {
+  background-color: #f44336;
+}
+
+#stop-btn:hover {
+  background-color: #d32f2f;
+}
+
+/* Estilos específicos para el botón de escanear nuevo */
+#scan-new-btn {
+  background-color: #2196f3;
+}
+
+#scan-new-btn:hover {
+  background-color: #0b7dda;
+}
+
+/* Estilos para el mensaje de instrucción */
+.instruction {
+  text-align: center;
+  animation: pulse 2s infinite;
+  padding: 15px;
+  border-radius: 10px;
+  background-color: rgba(33, 150, 243, 0.3);
+  margin-bottom: 15px;
+}
+
+.instruction h2 {
+  color: #2196f3;
+  margin-bottom: 10px;
+}
+
+.instruction p {
+  line-height: 1.5;
+}
+
+@keyframes pulse {
+  0% {
+    box-shadow: 0 0 0 0 rgba(33, 150, 243, 0.4);
+  }
+  70% {
+    box-shadow: 0 0 0 10px rgba(33, 150, 243, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(33, 150, 243, 0);
+  }
+}
+
+/* Estilos para el indicador de carga */
+.loading-spinner {
+  display: inline-block;
+  width: 16px;
+  height: 16px;
+  border: 3px solid rgba(255, 255, 255, 0.3);
+  border-radius: 50%;
+  border-top-color: white;
+  animation: spin 1s ease-in-out infinite;
+  margin-right: 8px;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+#loading-text {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Estilos para el mensaje de pantalla grande */
+#desktop-warning {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: #000000;
+  z-index: 9999;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  color: white;
+  text-align: center;
+  padding: 20px;
+  display: none;
+}
+
+#desktop-warning h2 {
+  font-size: 24px;
+  margin-bottom: 15px;
+  color: #2196f3;
+}
+
+#desktop-warning p {
+  font-size: 16px;
+  margin-bottom: 20px;
+  max-width: 600px;
+}
+
+#desktop-warning button {
+  padding: 10px 20px;
+  background-color: #4caf50;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 16px;
+  margin: 10px;
+}
+
+#desktop-warning button:hover {
+  background-color: #45a049;
+}
+
+#desktop-warning button.close-btn {
+  background-color: #f44336;
+}
+
+#desktop-warning button.close-btn:hover {
+  background-color: #d32f2f;
 }
