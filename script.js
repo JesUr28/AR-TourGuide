@@ -14,7 +14,6 @@ const loadingText = document.getElementById("loading-text")
 const textElement = document.getElementById("valor-text")
 const titleElement = document.getElementById("title")
 const instructionMessage = document.getElementById("instruction-message")
-const persistentModelContainer = document.getElementById("persistent-model-container")
 
 const texts = {
   honestidad: {
@@ -105,43 +104,33 @@ function stopSpeaking() {
   updateButtonState()
 }
 
-// Función para ocultar todos los modelos vinculados a marcadores
-function hideAllMarkerModels() {
-  const modelIds = ["honestidad", "respeto", "justicia", "compromiso", "diligencia", "veracidad"]
-  modelIds.forEach((id) => {
-    const model = document.querySelector(`#${id}-model`)
-    if (model) {
-      model.setAttribute("visible", "false")
-    }
-  })
-}
-
-// Función para mostrar un modelo específico vinculado a un marcador
-function showMarkerModel(modelId) {
-  const model = document.querySelector(`#${modelId}-model`)
-  if (model) {
-    model.setAttribute("visible", "true")
-  }
-}
-
-// Función para crear un modelo persistente
-function createPersistentModel(markerId) {
+// Función para hacer que un modelo permanezca visible incluso cuando el marcador se pierde
+function makeModelPersistent(markerId) {
   const markerKey = markerId.replace("marker-", "")
+  const marker = document.querySelector(`#${markerId}`)
 
   // Guardar el ID del último modelo escaneado
-  lastScannedModelId = `${markerKey}-model`
-
-  // Ocultar todos los modelos vinculados a marcadores
-  hideAllMarkerModels()
-
-  // Mostrar solo el modelo vinculado al marcador actual
-  showMarkerModel(lastScannedModelId)
+  lastScannedModelId = markerKey
 
   // Activar el modo persistente
   persistentMode = true
 
-  // Actualizar los botones
-  updateButtonState()
+  // Configurar el marcador para que no oculte el modelo cuando se pierde
+  if (marker) {
+    // Obtener la entidad del modelo
+    const modelEntity = marker.querySelector(`#${markerKey}-model`)
+
+    if (modelEntity) {
+      // Asegurarse de que el modelo sea visible
+      modelEntity.setAttribute("visible", "true")
+
+      // Configurar el marcador para que no oculte el modelo cuando se pierde
+      marker.setAttribute("emitevents", "true")
+
+      // Actualizar los botones
+      updateButtonState()
+    }
+  }
 }
 
 // Función para mostrar el contenido del marcador
@@ -169,11 +158,8 @@ function showMarkerContent(markerId) {
   // Actualizar marcador activo
   activeMarker = markerId
 
-  // Crear modelo persistente
-  createPersistentModel(markerId)
-
-  // Actualizar botones
-  updateButtonState()
+  // Hacer que el modelo permanezca visible
+  makeModelPersistent(markerId)
 
   // Liberar el flag después de un breve retraso para evitar cambios rápidos
   setTimeout(() => {
@@ -204,11 +190,20 @@ function hideMarkerContent(markerId) {
 
 // Función para resetear al modo de escaneo
 function resetToScanMode() {
-  // Ocultar todos los modelos
-  hideAllMarkerModels()
-
   // Resetear el modo persistente
   persistentMode = false
+
+  // Si hay un marcador activo, ocultar su modelo
+  if (lastScannedModelId) {
+    const marker = document.querySelector(`a-marker[id*="${lastScannedModelId}"]`)
+    if (marker) {
+      const modelEntity = marker.querySelector(`#${lastScannedModelId}-model`)
+      if (modelEntity) {
+        modelEntity.setAttribute("visible", "false")
+      }
+    }
+  }
+
   lastScannedModelId = null
 
   // Ocultar título y texto
