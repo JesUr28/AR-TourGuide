@@ -18,6 +18,7 @@ const instructionMessage = document.getElementById("instruction-message")
 
 // Posición original de los modelos
 const originalModelPosition = "0 -1.5 0"
+const originalModelScale = "1 1 1" // Escala original de los modelos
 
 const texts = {
   honestidad: {
@@ -148,6 +149,30 @@ function makeModelPersistent(markerId) {
   }
 }
 
+// Añadir la nueva función resetModelTransform después de la función makeModelPersistent
+// Esta función restablece la escala y posición del modelo a sus valores originales
+function resetModelTransform(markerId) {
+  const markerKey = markerId.replace("marker-", "")
+  const marker = document.querySelector(`#${markerId}`)
+
+  if (marker) {
+    const modelEntity = marker.querySelector(`#${markerKey}-model`)
+
+    if (modelEntity) {
+      // Restablecer la posición original
+      modelEntity.setAttribute("position", originalModelPosition)
+
+      // Restablecer la escala original
+      modelEntity.setAttribute("scale", originalModelScale)
+
+      // Restablecer la rotación a 0
+      modelEntity.setAttribute("rotation", "0 0 0")
+
+      console.log(`Modelo ${markerKey} restablecido a su tamaño y posición original`)
+    }
+  }
+}
+
 // Función para mostrar el contenido del marcador
 function showMarkerContent(markerId) {
   // Si ya hay un marcador activo o estamos procesando otro, ignorar este
@@ -186,6 +211,9 @@ function showMarkerContent(markerId) {
 
   // Actualizar marcador activo
   activeMarker = markerId
+
+  // Restablecer el modelo a su tamaño y posición original
+  resetModelTransform(markerId)
 
   // Hacer que el modelo permanezca visible
   makeModelPersistent(markerId)
@@ -227,7 +255,8 @@ function hideAllModels() {
   })
 }
 
-// Función para preparar todos los modelos para ser detectados nuevamente
+// Modificar la función resetModelsForDetection para incluir el restablecimiento de escala
+// Buscar la función resetModelsForDetection y reemplazarla con esta versión actualizada:
 function resetModelsForDetection() {
   const modelIds = ["honestidad", "respeto", "justicia", "compromiso", "diligencia", "veracidad"]
 
@@ -235,6 +264,8 @@ function resetModelsForDetection() {
     const model = document.querySelector(`#${id}-model`)
     if (model) {
       model.setAttribute("position", originalModelPosition)
+      model.setAttribute("scale", originalModelScale)
+      model.setAttribute("rotation", "0 0 0")
       model.classList.remove("hidden-model")
       model.setAttribute("visible", "false")
     }
@@ -355,3 +386,4 @@ window.addEventListener("resize", checkDeviceAndShowWarning)
 document.getElementById("back-btn").addEventListener("click", () => {
   window.history.back()
 })
+
