@@ -21,14 +21,14 @@ const originalModelPosition = "0 0 0" // Ahora es relativo al contenedor
 const originalModelScale = "1 1 1" // Escala original de los modelos
 const originalContainerPosition = "0 -1.5 0" // Posición del contenedor
 
-// Rotación inicial para cada modelo (ajustar según sea necesario)
+// Rotación inicial para cada modelo
 const modelRotations = {
-  honestidad: "0 0 0",
-  respeto: "0 0 0",
-  justicia: "0 0 0",
-  compromiso: "0 0 0",
-  diligencia: "0 0 0",
-  veracidad: "0 0 0",
+  honestidad: "-90 0 0",
+  respeto: "-90 0 0",
+  justicia: "-90 0 0",
+  compromiso: "-90 0 0",
+  diligencia: "-90 0 0",
+  veracidad: "-90 0 0",
 }
 
 const texts = {
@@ -181,6 +181,15 @@ function resetModelTransform(markerId) {
       // Aplicar la rotación específica para este modelo
       if (modelRotations[markerKey]) {
         modelEntity.setAttribute("rotation", modelRotations[markerKey])
+      }
+
+      // Restablecer la rotación Y a 0 (para el control de gestos)
+      const currentRotation = modelEntity.getAttribute("rotation")
+      if (currentRotation) {
+        // Mantener la rotación X y Z, pero resetear Y a 0
+        const rotX = currentRotation.x || -90
+        const rotZ = currentRotation.z || 0
+        modelEntity.setAttribute("rotation", `${rotX} 0 ${rotZ}`)
       }
     }
   }
@@ -370,30 +379,8 @@ document.addEventListener("gesturestart", (e) => {
   e.preventDefault()
 })
 
-// Función para ajustar la rotación inicial de un modelo específico
-function setModelInitialRotation(modelId, rotationValue) {
-  modelRotations[modelId] = rotationValue
-
-  // Si el modelo ya está cargado, aplicar la rotación inmediatamente
-  const model = document.querySelector(`#${modelId}-model`)
-  if (model) {
-    model.setAttribute("rotation", rotationValue)
-  }
-}
-
-// Configurar rotaciones iniciales para cada modelo
-// Estas rotaciones se pueden ajustar según sea necesario para cada modelo
+// Precarga de voces para mejorar el tiempo de respuesta
 window.addEventListener("DOMContentLoaded", () => {
-  // Ejemplo: ajustar la rotación inicial para que los modelos miren hacia adelante
-  // Formato: "x y z" en grados
-  setModelInitialRotation("honestidad", "-90 0 0") // Girar 90 grados en X para mirar hacia adelante
-  setModelInitialRotation("respeto", "-90 0 0")
-  setModelInitialRotation("justicia", "-90 0 0")
-  setModelInitialRotation("compromiso", "-90 0 0")
-  setModelInitialRotation("diligencia", "-90 0 0")
-  setModelInitialRotation("veracidad", "-90 0 0")
-
-  // Precarga de voces para mejorar el tiempo de respuesta
   if (speechSynthesis.onvoiceschanged !== undefined) {
     speechSynthesis.onvoiceschanged = () => {
       speechSynthesis.getVoices()
@@ -433,4 +420,5 @@ window.addEventListener("resize", checkDeviceAndShowWarning)
 document.getElementById("back-btn").addEventListener("click", () => {
   window.history.back()
 })
+
 
