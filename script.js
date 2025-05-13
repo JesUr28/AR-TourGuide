@@ -6,6 +6,7 @@ let activeMarker = null
 let isProcessingMarker = false // Flag para evitar procesamiento simultáneo de marcadores
 let persistentMode = false // Flag para modo persistente
 let lastScannedModelId = null // Para guardar el ID del último modelo escaneado
+const animatingModels = {} // Para rastrear qué modelos están siendo animados
 
 const playBtn = document.getElementById("play-btn")
 const stopBtn = document.getElementById("stop-btn")
@@ -19,7 +20,81 @@ const instructionMessage = document.getElementById("instruction-message")
 // Posición y rotación original de los modelos
 const originalModelPosition = "0 -1.5 0"
 const originalModelScale = "1 1 1"
-const originalModelRotation = "-90 0 0"
+const originalModelRotation = "0 0 0" // Sin rotación inicial
+
+// Registrar componente personalizado para la animación de rotación
+AFRAME.registerComponent("auto-rotate", {
+  schema: {
+    enabled: { default: true },
+    duration: { default: 1500 }, // Duración de la animación en milisegundos
+    targetRotation: { default: "-90 0 0" }, // Rotación final deseada
+  },
+
+  init: function () {
+    this.animate = this.animate.bind(this)
+    this.isAnimating = false
+    this.startTime = null
+    this.initialRotation = { x: 0, y: 0, z: 0 }
+    this.targetRotation = this.parseRotation(this.data.targetRotation)
+
+    // Escuchar el evento markerFound para iniciar la animación
+    this.el.sceneEl.addEventListener("markerFound", (e) => {
+      if (e.target === this.el.parentNode && this.data.enabled && !animatingModels[this.el.id]) {
+        this.startAnimation()
+      }
+    })
+  },
+
+  parseRotation: (rotationStr) => {
+    const parts = rotationStr.split(" ").map(Number.parseFloat)
+    return { x: parts[0] || 0, y: parts[1] || 0, z: parts[2] || 0 }
+  },
+
+  startAnimation: function () {
+    if (this.isAnimating) return
+
+    // Obtener la rotación actual
+    const currentRotation = this.el.getAttribute("rotation")
+    this.initialRotation = {
+      x: currentRotation.x || 0,
+      y: currentRotation.y || 0,
+      z: currentRotation.z || 0,
+    }
+
+    this.isAnimating = true
+    this.startTime = null
+    animatingModels[this.el.id] = true
+
+    // Iniciar la animación
+    requestAnimationFrame(this.animate)
+  },
+
+  animate: function (timestamp) {
+    if (!this.isAnimating) return
+
+    if (!this.startTime) this.startTime = timestamp
+    const elapsed = timestamp - this.startTime
+    const progress = Math.min(elapsed / this.data.duration, 1)
+
+    // Calcular la rotación interpolada
+    const newRotation = {
+      x: this.initialRotation.x + (this.targetRotation.x - this.initialRotation.x) * progress,
+      y: this.initialRotation.y + (this.targetRotation.y - this.initialRotation.y) * progress,
+      z: this.initialRotation.z + (this.targetRotation.z - this.initialRotation.z) * progress,
+    }
+
+    // Aplicar la rotación
+    this.el.setAttribute("rotation", newRotation)
+
+    // Continuar la animación si no ha terminado
+    if (progress < 1) {
+      requestAnimationFrame(this.animate)
+    } else {
+      this.isAnimating = false
+      delete animatingModels[this.el.id]
+    }
+  },
+})
 
 const texts = {
   honestidad: {
@@ -163,8 +238,17 @@ function resetModelTransform(markerId) {
       // Restablecer la escala del modelo
       modelEntity.setAttribute("scale", originalModelScale)
 
-      // Restablecer la rotación del modelo
+      // Restablecer la rotación del modelo a 0 (sin rotación inicial)
       modelEntity.setAttribute("rotation", originalModelRotation)
+
+      // Añadir el componente auto-rotate si no existe
+      if (!modelEntity.hasAttribute("auto-rotate")) {
+        modelEntity.setAttribute("auto-rotate", {
+          enabled: true,
+          duration: 1500,
+          targetRotation: "-90 0 0",
+        })
+      }
     }
   }
 }
@@ -261,6 +345,16 @@ function resetModelsForDetection() {
       model.setAttribute("position", originalModelPosition)
       model.setAttribute("scale", originalModelScale)
       model.setAttribute("rotation", originalModelRotation)
+
+      // Asegurarse de que el componente auto-rotate esté presente
+      if (!model.hasAttribute("auto-rotate")) {
+        model.setAttribute("auto-rotate", {
+          enabled: true,
+          duration: 1500,
+          targetRotation: "-90 0 0",
+        })
+      }
+
       model.classList.remove("hidden-model")
       model.setAttribute("visible", "false")
     }
@@ -340,8 +434,21 @@ document.addEventListener("gesturestart", (e) => {
   e.preventDefault()
 })
 
-// Precarga de voces para mejorar el tiempo de respuesta
+// Inicializar componentes auto-rotate en todos los modelos
 window.addEventListener("DOMContentLoaded", () => {
+  // Añadir el componente auto-rotate a todos los modelos
+  markerIds.forEach((id) => {
+    const model = document.querySelector(`#${id}-model`)
+    if (model) {
+      model.setAttribute("auto-rotate", {
+        enabled: true,
+        duration: 1500,
+        targetRotation: "-90 0 0",
+      })
+    }
+  })
+
+  // Precarga de voces para mejorar el tiempo de respuesta
   if (speechSynthesis.onvoiceschanged !== undefined) {
     speechSynthesis.onvoiceschanged = () => {
       speechSynthesis.getVoices()
