@@ -18,7 +18,7 @@ const instructionMessage = document.getElementById("instruction-message")
 
 // Posición original de los modelos
 const originalModelPosition = "0 0 0" // Ahora es relativo al contenedor
-const originalModelScale = "1 1 1" // Escala original de los modelos
+const originalModelScale = "0.6 1 1" // Escala original de los modelos
 const originalContainerPosition = "0 -1.5 0" // Posición del contenedor
 
 // Rotación inicial para cada modelo
