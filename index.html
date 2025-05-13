@@ -96,6 +96,7 @@
         </div>
     </div>
     
+    <!-- Mensaje de advertencia para dispositivos de escritorio -->
     <div id="desktop-warning">
         <h2>¡Atención!</h2>
         <p>Esta aplicación está diseñada exclusivamente para dispositivos móviles. En pantallas grandes, el diseño puede verse distorsionado y la experiencia AR no funcionará correctamente.</p>
@@ -103,14 +104,37 @@
             <button id="back-btn">Regresar</button>
         </div>
     </div>
-    <!-- Mensaje de advertencia para orientación horizontal -->
+    
+    <!-- Mensaje de advertencia para orientación horizontal mejorado -->
     <div id="landscape-warning">
-        <h2>¡Atención!</h2>
-        <p>Esta aplicación está diseñada para usarse en orientación vertical. Por favor, gira tu dispositivo.</p>
-        <div class="rotate-icon">
-            <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9"></path>
-            </svg>
+        <div class="warning-content">
+            <div class="warning-icon">
+                <svg width="80" height="80" viewBox="0 0 24 24" fill="none" stroke="#FFD700" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="12" cy="12" r="10"></circle>
+                    <line x1="12" y1="8" x2="12" y2="12"></line>
+                    <line x1="12" y1="16" x2="12.01" y2="16"></line>
+                </svg>
+            </div>
+            <h2>¡Gira tu dispositivo!</h2>
+            <p>Esta experiencia AR está diseñada para verse en modo vertical.</p>
+            <div class="phone-container">
+                <div class="phone horizontal">
+                    <div class="phone-inner"></div>
+                    <div class="phone-screen"></div>
+                    <div class="cross-icon">✕</div>
+                </div>
+                <div class="arrow">
+                    <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#4CAF50" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M5 12h14"></path>
+                        <path d="M12 5l7 7-7 7"></path>
+                    </svg>
+                </div>
+                <div class="phone vertical">
+                    <div class="phone-inner"></div>
+                    <div class="phone-screen"></div>
+                    <div class="check-icon">✓</div>
+                </div>
+            </div>
         </div>
     </div>
     
