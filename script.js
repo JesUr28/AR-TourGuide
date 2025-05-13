@@ -16,20 +16,10 @@ const textElement = document.getElementById("valor-text")
 const titleElement = document.getElementById("title")
 const instructionMessage = document.getElementById("instruction-message")
 
-// Posición original de los modelos
-const originalModelPosition = "0 0 0" // Ahora es relativo al contenedor
-const originalModelScale = "1 1 1" // Escala original de los modelos
-const originalContainerPosition = "0 -1.5 0" // Posición del contenedor
-
-// Rotación inicial para cada modelo
-const modelRotations = {
-  honestidad: "0 0 0", // Ahora es 0 porque la rotación se maneja en el orientation-wrapper
-  respeto: "0 0 0",
-  justicia: "0 0 0",
-  compromiso: "0 0 0",
-  diligencia: "0 0 0",
-  veracidad: "0 0 0",
-}
+// Posición y rotación original de los modelos
+const originalModelPosition = "0 -1.5 0"
+const originalModelScale = "1 1 1"
+const originalModelRotation = "-90 0 0"
 
 const texts = {
   honestidad: {
@@ -130,17 +120,15 @@ function makeModelPersistent(markerId) {
 
   // Configurar el marcador para que no oculte el modelo cuando se pierde
   if (marker) {
-    // Obtener el contenedor, el wrapper de orientación y el modelo
-    const container = marker.querySelector(`#${markerKey}-container`)
-    const orientation = marker.querySelector(`#${markerKey}-orientation`)
+    // Obtener la entidad del modelo
     const modelEntity = marker.querySelector(`#${markerKey}-model`)
 
-    if (container && orientation && modelEntity) {
+    if (modelEntity) {
       // Asegurarse de que el modelo sea visible
       modelEntity.setAttribute("visible", "true")
 
       // Aplicar filtro de suavizado para reducir la vibración
-      container.setAttribute("animation__filter", {
+      modelEntity.setAttribute("animation__filter", {
         property: "position",
         dur: 100,
         easing: "linear",
@@ -165,26 +153,18 @@ function resetModelTransform(markerId) {
   const marker = document.querySelector(`#${markerId}`)
 
   if (marker) {
-    // Obtener el contenedor, el wrapper de orientación y el modelo
-    const container = marker.querySelector(`#${markerKey}-container`)
-    const orientation = marker.querySelector(`#${markerKey}-orientation`)
+    // Obtener la entidad del modelo
     const modelEntity = marker.querySelector(`#${markerKey}-model`)
 
-    if (container && orientation && modelEntity) {
-      // Restablecer la posición del contenedor
-      container.setAttribute("position", originalContainerPosition)
-
-      // Restablecer la orientación a -90 grados en X (mirando hacia adelante)
-      orientation.setAttribute("rotation", "-90 0 0")
-
-      // Restablecer la posición del modelo relativa al contenedor
+    if (modelEntity) {
+      // Restablecer la posición del modelo
       modelEntity.setAttribute("position", originalModelPosition)
-
-      // Restablecer la rotación del modelo a 0
-      modelEntity.setAttribute("rotation", "0 0 0")
 
       // Restablecer la escala del modelo
       modelEntity.setAttribute("scale", originalModelScale)
+
+      // Restablecer la rotación del modelo
+      modelEntity.setAttribute("rotation", originalModelRotation)
     }
   }
 }
@@ -276,26 +256,11 @@ function resetModelsForDetection() {
   const modelIds = ["honestidad", "respeto", "justicia", "compromiso", "diligencia", "veracidad"]
 
   modelIds.forEach((id) => {
-    const container = document.querySelector(`#${id}-container`)
-    const orientation = document.querySelector(`#${id}-orientation`)
     const model = document.querySelector(`#${id}-model`)
-
-    if (container && orientation && model) {
-      // Restablecer la posición del contenedor
-      container.setAttribute("position", originalContainerPosition)
-
-      // Restablecer la orientación a -90 grados en X (mirando hacia adelante)
-      orientation.setAttribute("rotation", "-90 0 0")
-
-      // Restablecer la posición del modelo relativa al contenedor
+    if (model) {
       model.setAttribute("position", originalModelPosition)
-
-      // Restablecer la rotación del modelo a 0
-      model.setAttribute("rotation", "0 0 0")
-
-      // Restablecer la escala del modelo
       model.setAttribute("scale", originalModelScale)
-
+      model.setAttribute("rotation", originalModelRotation)
       model.classList.remove("hidden-model")
       model.setAttribute("visible", "false")
     }
