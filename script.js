@@ -17,8 +17,19 @@ const titleElement = document.getElementById("title")
 const instructionMessage = document.getElementById("instruction-message")
 
 // Posición original de los modelos
-const originalModelPosition = "0 -1.5 0"
+const originalModelPosition = "0 0 0" // Ahora es relativo al contenedor
 const originalModelScale = "1 1 1" // Escala original de los modelos
+const originalContainerPosition = "0 -1.5 0" // Posición del contenedor
+
+// Rotación inicial para cada modelo (ajustar según sea necesario)
+const modelRotations = {
+  honestidad: "0 0 0",
+  respeto: "0 0 0",
+  justicia: "0 0 0",
+  compromiso: "0 0 0",
+  diligencia: "0 0 0",
+  veracidad: "0 0 0",
+}
 
 const texts = {
   honestidad: {
@@ -119,18 +130,16 @@ function makeModelPersistent(markerId) {
 
   // Configurar el marcador para que no oculte el modelo cuando se pierde
   if (marker) {
-    // Obtener la entidad del modelo
+    // Obtener el contenedor y el modelo
+    const container = marker.querySelector(`#${markerKey}-container`)
     const modelEntity = marker.querySelector(`#${markerKey}-model`)
 
-    if (modelEntity) {
+    if (container && modelEntity) {
       // Asegurarse de que el modelo sea visible
       modelEntity.setAttribute("visible", "true")
 
-      // Asegurarse de que el modelo esté en la posición correcta
-      modelEntity.setAttribute("position", originalModelPosition)
-
       // Aplicar filtro de suavizado para reducir la vibración
-      modelEntity.setAttribute("animation__filter", {
+      container.setAttribute("animation__filter", {
         property: "position",
         dur: 100,
         easing: "linear",
@@ -149,26 +158,30 @@ function makeModelPersistent(markerId) {
   }
 }
 
-// Añadir la nueva función resetModelTransform después de la función makeModelPersistent
-// Esta función restablece la escala y posición del modelo a sus valores originales
+// Función para restablecer la transformación del modelo
 function resetModelTransform(markerId) {
   const markerKey = markerId.replace("marker-", "")
   const marker = document.querySelector(`#${markerId}`)
 
   if (marker) {
+    // Obtener el contenedor y el modelo
+    const container = marker.querySelector(`#${markerKey}-container`)
     const modelEntity = marker.querySelector(`#${markerKey}-model`)
 
-    if (modelEntity) {
-      // Restablecer la posición original
+    if (container && modelEntity) {
+      // Restablecer la posición del contenedor
+      container.setAttribute("position", originalContainerPosition)
+
+      // Restablecer la posición del modelo relativa al contenedor
       modelEntity.setAttribute("position", originalModelPosition)
 
-      // Restablecer la escala original
+      // Restablecer la escala del modelo
       modelEntity.setAttribute("scale", originalModelScale)
 
-      // NO restablecer la rotación para permitir que la animación continúe
-      // modelEntity.setAttribute("rotation", "0 0 0")
-
-      console.log(`Modelo ${markerKey} restablecido a su tamaño y posición original`)
+      // Aplicar la rotación específica para este modelo
+      if (modelRotations[markerKey]) {
+        modelEntity.setAttribute("rotation", modelRotations[markerKey])
+      }
     }
   }
 }
@@ -255,18 +268,29 @@ function hideAllModels() {
   })
 }
 
-// Modificar la función resetModelsForDetection para incluir el restablecimiento de escala
-// Buscar la función resetModelsForDetection y reemplazarla con esta versión actualizada:
+// Función para preparar todos los modelos para ser detectados nuevamente
 function resetModelsForDetection() {
   const modelIds = ["honestidad", "respeto", "justicia", "compromiso", "diligencia", "veracidad"]
 
   modelIds.forEach((id) => {
+    const container = document.querySelector(`#${id}-container`)
     const model = document.querySelector(`#${id}-model`)
-    if (model) {
+
+    if (container && model) {
+      // Restablecer la posición del contenedor
+      container.setAttribute("position", originalContainerPosition)
+
+      // Restablecer la posición del modelo relativa al contenedor
       model.setAttribute("position", originalModelPosition)
+
+      // Restablecer la escala del modelo
       model.setAttribute("scale", originalModelScale)
-      // NO restablecer la rotación
-      // model.setAttribute("rotation", "0 0 0")
+
+      // Aplicar la rotación específica para este modelo
+      if (modelRotations[id]) {
+        model.setAttribute("rotation", modelRotations[id])
+      }
+
       model.classList.remove("hidden-model")
       model.setAttribute("visible", "false")
     }
@@ -346,8 +370,30 @@ document.addEventListener("gesturestart", (e) => {
   e.preventDefault()
 })
 
-// Precarga de voces para mejorar el tiempo de respuesta
+// Función para ajustar la rotación inicial de un modelo específico
+function setModelInitialRotation(modelId, rotationValue) {
+  modelRotations[modelId] = rotationValue
+
+  // Si el modelo ya está cargado, aplicar la rotación inmediatamente
+  const model = document.querySelector(`#${modelId}-model`)
+  if (model) {
+    model.setAttribute("rotation", rotationValue)
+  }
+}
+
+// Configurar rotaciones iniciales para cada modelo
+// Estas rotaciones se pueden ajustar según sea necesario para cada modelo
 window.addEventListener("DOMContentLoaded", () => {
+  // Ejemplo: ajustar la rotación inicial para que los modelos miren hacia adelante
+  // Formato: "x y z" en grados
+  setModelInitialRotation("honestidad", "-90 0 0") // Girar 90 grados en X para mirar hacia adelante
+  setModelInitialRotation("respeto", "-90 0 0")
+  setModelInitialRotation("justicia", "-90 0 0")
+  setModelInitialRotation("compromiso", "-90 0 0")
+  setModelInitialRotation("diligencia", "-90 0 0")
+  setModelInitialRotation("veracidad", "-90 0 0")
+
+  // Precarga de voces para mejorar el tiempo de respuesta
   if (speechSynthesis.onvoiceschanged !== undefined) {
     speechSynthesis.onvoiceschanged = () => {
       speechSynthesis.getVoices()
@@ -387,3 +433,4 @@ window.addEventListener("resize", checkDeviceAndShowWarning)
 document.getElementById("back-btn").addEventListener("click", () => {
   window.history.back()
 })
+
