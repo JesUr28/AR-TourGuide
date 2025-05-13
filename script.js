@@ -330,10 +330,6 @@ function isPortraitOrientation() {
 }
 
 function checkDeviceAndOrientation() {
-  const desktopWarning = document.getElementById("desktop-warning")
-  const landscapeWarning = document.getElementById("landscape-warning")
-  const container = document.getElementById("container")
-
   // Verificar si es un dispositivo móvil
   const isMobile = isMobileDevice()
 
@@ -362,6 +358,17 @@ function checkDeviceAndOrientation() {
   container.style.display = "flex"
 }
 
+// Inicialización
+window.addEventListener("DOMContentLoaded", () => {
+  // Precarga de voces
+  if (speechSynthesis.onvoiceschanged !== undefined) {
+    speechSynthesis.onvoiceschanged = () => speechSynthesis.getVoices()
+  }
+
+  // Preparar modelos para detección
+  resetModelsForDetection()
+})
+
 // Verificar dispositivo y orientación al cargar y cuando cambie el tamaño/orientación
 window.addEventListener("load", checkDeviceAndOrientation)
 window.addEventListener("resize", checkDeviceAndOrientation)
@@ -369,3 +376,4 @@ window.addEventListener("orientationchange", checkDeviceAndOrientation)
 
 // Configurar botón de regreso
 document.getElementById("back-btn").addEventListener("click", () => window.history.back())
+
