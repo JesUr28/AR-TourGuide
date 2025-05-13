@@ -17,6 +17,9 @@ const loadingText = document.getElementById("loading-text")
 const textElement = document.getElementById("valor-text")
 const titleElement = document.getElementById("title")
 const instructionMessage = document.getElementById("instruction-message")
+const desktopWarning = document.getElementById("desktop-warning")
+const landscapeWarning = document.getElementById("landscape-warning")
+const container = document.getElementById("container")
 
 // Posición original de los modelos
 const originalModelPosition = "0 -1.5 0"
@@ -314,7 +317,7 @@ scanNewBtn.addEventListener("click", resetToScanMode)
 // Prevenir zoom en dispositivos iOS
 document.addEventListener("gesturestart", (e) => e.preventDefault())
 
-// Detección de dispositivo móvil
+// Detección de dispositivo y orientación
 function isMobileDevice() {
   return (
     window.innerWidth <= 768 ||
@@ -322,33 +325,47 @@ function isMobileDevice() {
   )
 }
 
-function checkDeviceAndShowWarning() {
-  const desktopWarning = document.getElementById("desktop-warning")
-  const container = document.getElementById("container")
-
-  if (!isMobileDevice()) {
-    desktopWarning.style.display = "flex"
-    container.style.display = "none"
-  } else {
-    desktopWarning.style.display = "none"
-    container.style.display = "flex"
-  }
+function isPortraitOrientation() {
+  return window.innerHeight > window.innerWidth
 }
 
-// Inicialización
-window.addEventListener("DOMContentLoaded", () => {
-  // Precarga de voces
-  if (speechSynthesis.onvoiceschanged !== undefined) {
-    speechSynthesis.onvoiceschanged = () => speechSynthesis.getVoices()
+function checkDeviceAndOrientation() {
+  const desktopWarning = document.getElementById("desktop-warning")
+  const landscapeWarning = document.getElementById("landscape-warning")
+  const container = document.getElementById("container")
+
+  // Verificar si es un dispositivo móvil
+  const isMobile = isMobileDevice()
+
+  // Verificar si está en orientación vertical (portrait)
+  const isPortrait = isPortraitOrientation()
+
+  // Mostrar advertencia de escritorio si no es un dispositivo móvil
+  if (!isMobile) {
+    desktopWarning.style.display = "flex"
+    landscapeWarning.style.display = "none"
+    container.style.display = "none"
+    return
   }
 
-  // Preparar modelos para detección
-  resetModelsForDetection()
-})
+  // Mostrar advertencia de orientación si está en horizontal (landscape)
+  if (!isPortrait) {
+    desktopWarning.style.display = "none"
+    landscapeWarning.style.display = "flex"
+    container.style.display = "none"
+    return
+  }
 
-// Verificar dispositivo
-window.addEventListener("load", checkDeviceAndShowWarning)
-window.addEventListener("resize", checkDeviceAndShowWarning)
+  // Si es móvil y está en vertical, mostrar la aplicación
+  desktopWarning.style.display = "none"
+  landscapeWarning.style.display = "none"
+  container.style.display = "flex"
+}
+
+// Verificar dispositivo y orientación al cargar y cuando cambie el tamaño/orientación
+window.addEventListener("load", checkDeviceAndOrientation)
+window.addEventListener("resize", checkDeviceAndOrientation)
+window.addEventListener("orientationchange", checkDeviceAndOrientation)
 
 // Configurar botón de regreso
 document.getElementById("back-btn").addEventListener("click", () => window.history.back())
