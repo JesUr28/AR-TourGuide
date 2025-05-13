@@ -18,17 +18,17 @@ const instructionMessage = document.getElementById("instruction-message")
 
 // Posición original de los modelos
 const originalModelPosition = "0 0 0" // Ahora es relativo al contenedor
-const originalModelScale = "0.6 1 1" // Escala original de los modelos
+const originalModelScale = "1 1 1" // Escala original de los modelos
 const originalContainerPosition = "0 -1.5 0" // Posición del contenedor
 
 // Rotación inicial para cada modelo
 const modelRotations = {
-  honestidad: "-90 0 0",
-  respeto: "-90 0 0",
-  justicia: "-90 0 0",
-  compromiso: "-90 0 0",
-  diligencia: "-90 0 0",
-  veracidad: "-90 0 0",
+  honestidad: "0 0 0", // Ahora es 0 porque la rotación se maneja en el orientation-wrapper
+  respeto: "0 0 0",
+  justicia: "0 0 0",
+  compromiso: "0 0 0",
+  diligencia: "0 0 0",
+  veracidad: "0 0 0",
 }
 
 const texts = {
@@ -130,11 +130,12 @@ function makeModelPersistent(markerId) {
 
   // Configurar el marcador para que no oculte el modelo cuando se pierde
   if (marker) {
-    // Obtener el contenedor y el modelo
+    // Obtener el contenedor, el wrapper de orientación y el modelo
     const container = marker.querySelector(`#${markerKey}-container`)
+    const orientation = marker.querySelector(`#${markerKey}-orientation`)
     const modelEntity = marker.querySelector(`#${markerKey}-model`)
 
-    if (container && modelEntity) {
+    if (container && orientation && modelEntity) {
       // Asegurarse de que el modelo sea visible
       modelEntity.setAttribute("visible", "true")
 
@@ -164,24 +165,26 @@ function resetModelTransform(markerId) {
   const marker = document.querySelector(`#${markerId}`)
 
   if (marker) {
-    // Obtener el contenedor y el modelo
+    // Obtener el contenedor, el wrapper de orientación y el modelo
     const container = marker.querySelector(`#${markerKey}-container`)
+    const orientation = marker.querySelector(`#${markerKey}-orientation`)
     const modelEntity = marker.querySelector(`#${markerKey}-model`)
 
-    if (container && modelEntity) {
+    if (container && orientation && modelEntity) {
       // Restablecer la posición del contenedor
       container.setAttribute("position", originalContainerPosition)
+
+      // Restablecer la orientación a -90 grados en X (mirando hacia adelante)
+      orientation.setAttribute("rotation", "-90 0 0")
 
       // Restablecer la posición del modelo relativa al contenedor
       modelEntity.setAttribute("position", originalModelPosition)
 
+      // Restablecer la rotación del modelo a 0
+      modelEntity.setAttribute("rotation", "0 0 0")
+
       // Restablecer la escala del modelo
       modelEntity.setAttribute("scale", originalModelScale)
-
-      // Aplicar la rotación específica para este modelo
-      if (modelRotations[markerKey]) {
-        modelEntity.setAttribute("rotation", modelRotations[markerKey])
-      }
     }
   }
 }
@@ -274,22 +277,24 @@ function resetModelsForDetection() {
 
   modelIds.forEach((id) => {
     const container = document.querySelector(`#${id}-container`)
+    const orientation = document.querySelector(`#${id}-orientation`)
     const model = document.querySelector(`#${id}-model`)
 
-    if (container && model) {
+    if (container && orientation && model) {
       // Restablecer la posición del contenedor
       container.setAttribute("position", originalContainerPosition)
+
+      // Restablecer la orientación a -90 grados en X (mirando hacia adelante)
+      orientation.setAttribute("rotation", "-90 0 0")
 
       // Restablecer la posición del modelo relativa al contenedor
       model.setAttribute("position", originalModelPosition)
 
+      // Restablecer la rotación del modelo a 0
+      model.setAttribute("rotation", "0 0 0")
+
       // Restablecer la escala del modelo
       model.setAttribute("scale", originalModelScale)
-
-      // Aplicar la rotación específica para este modelo
-      if (modelRotations[id]) {
-        model.setAttribute("rotation", modelRotations[id])
-      }
 
       model.classList.remove("hidden-model")
       model.setAttribute("visible", "false")
@@ -411,3 +416,4 @@ window.addEventListener("resize", checkDeviceAndShowWarning)
 document.getElementById("back-btn").addEventListener("click", () => {
   window.history.back()
 })
+
