@@ -7,38 +7,89 @@
     <script src="https://cdn.jsdelivr.net/gh/jeromeetienne/AR.js/aframe/build/aframe-ar.min.js"></script>
     <script src="https://raw.githack.com/donmccurdy/aframe-extras/master/dist/aframe-extras.loaders.min.js"></script>
     <script src="https://raw.githack.com/AR-js-org/studio-backend/master/src/modules/marker/tools/gesture-detector.js"></script>
-    <script src="https://raw.githack.com/AR-js-org/studio-backend/master/src/modules/marker/tools/gesture-handler.js"></script>
-    <link rel="stylesheet" href="styles.css">
-    <!-- Script personalizado para manejar la rotación correctamente -->
+    <!-- Reemplazar el gesture-handler original con nuestra versión modificada -->
     <script>
-        // Este componente personalizado maneja la rotación horizontal correctamente
-        AFRAME.registerComponent('rotation-reader', {
-            tick: function () {
-                // Obtener la rotación actual del modelo
-                const modelRotation = this.el.getAttribute('rotation');
+        // Versión modificada del gesture-handler para manejar correctamente la rotación
+        AFRAME.registerComponent('custom-gesture-handler', {
+            schema: {
+                enabled: { default: true },
+                rotationFactor: { default: 5 },
+                minScale: { default: 0.3 },
+                maxScale: { default: 8 },
+                yOnly: { default: true }
+            },
+            
+            init: function() {
+                this.handleScale = this.handleScale.bind(this);
+                this.handleRotation = this.handleRotation.bind(this);
                 
-                // Obtener la entidad padre (orientation-wrapper)
-                const parent = this.el.parentElement;
+                this.isVisible = false;
+                this.initialScale = { x: 1, y: 1, z: 1 };
+                this.scaleFactor = 1;
                 
-                if (parent && modelRotation) {
-                    // Transferir solo la rotación Y al wrapper de orientación
-                    // Esto permite que la rotación horizontal funcione correctamente
-                    parent.setAttribute('rotation', {
-                        x: -90, // Mantener la orientación hacia adelante
-                        y: modelRotation.y, // Usar la rotación Y del modelo (horizontal)
-                        z: 0 // Mantener z en 0
-                    });
-                    
-                    // Resetear la rotación del modelo para evitar rotaciones acumulativas
-                    this.el.setAttribute('rotation', {
-                        x: 0,
-                        y: 0,
-                        z: 0
-                    });
+                this.el.sceneEl.addEventListener('markerFound', (e) => {
+                    if (e.target === this.el.parentNode) {
+                        this.isVisible = true;
+                        
+                        // Guardar la escala inicial
+                        const scale = this.el.getAttribute('scale');
+                        this.initialScale = { x: scale.x, y: scale.y, z: scale.z };
+                    }
+                });
+                
+                this.el.sceneEl.addEventListener('markerLost', (e) => {
+                    if (e.target === this.el.parentNode) {
+                        this.isVisible = false;
+                    }
+                });
+                
+                // Registrar los eventos de gestos
+                this.el.sceneEl.addEventListener('onefingermove', this.handleRotation);
+                this.el.sceneEl.addEventListener('twofingermove', this.handleScale);
+            },
+            
+            remove: function() {
+                this.el.sceneEl.removeEventListener('onefingermove', this.handleRotation);
+                this.el.sceneEl.removeEventListener('twofingermove', this.handleScale);
+            },
+            
+            handleRotation: function(event) {
+                if (!this.isVisible || !this.data.enabled) return;
+                
+                // Obtener la rotación actual
+                const rotation = this.el.getAttribute('rotation');
+                
+                // Aplicar rotación solo en el eje Y (horizontal)
+                if (this.data.yOnly) {
+                    rotation.y += event.detail.positionChange.x * this.data.rotationFactor;
+                } else {
+                    rotation.y += event.detail.positionChange.x * this.data.rotationFactor;
+                    rotation.x += event.detail.positionChange.y * this.data.rotationFactor;
                 }
+                
+                // Aplicar la nueva rotación
+                this.el.setAttribute('rotation', rotation);
+            },
+            
+            handleScale: function(event) {
+                if (!this.isVisible || !this.data.enabled) return;
+                
+                // Calcular el nuevo factor de escala
+                this.scaleFactor *= 1 + event.detail.spreadChange / event.detail.startSpread;
+                
+                // Limitar el factor de escala
+                this.scaleFactor = Math.min(Math.max(this.scaleFactor, this.data.minScale), this.data.maxScale);
+                
+                // Aplicar escala uniforme
+                this.el.setAttribute('scale', {
+                    x: this.initialScale.x * this.scaleFactor,
+                    y: this.initialScale.y * this.scaleFactor,
+                    z: this.initialScale.z * this.scaleFactor
+                });
             }
         });
     </script>
+    <link rel="stylesheet" href="styles.css">
 </head>
 <body>
     <div id="container">
@@ -56,79 +107,46 @@
                     <a-asset-item id="veracidad" src="https://cdn.glitch.global/f24dfbcf-5d5a-489d-b6c0-b547e6c91644/VERACIDADP1.glb"></a-asset-item>
                 </a-assets>
                 
-                <!-- Marcadores con estructura triple anidada para control preciso de rotación -->
+                <!-- Marcadores con estructura simplificada -->
                 <a-marker type="pattern" url="markers/pattern-H.patt" id="marker-honestidad" emitevents="true" smooth="true" smoothCount="10" smoothTolerance="0.01" smoothThreshold="5">
-                    <!-- Contenedor para la posición global -->
-                    <a-entity id="honestidad-container" position="0 -1.5 0">
-                        <!-- Wrapper para la orientación (rotación inicial) -->
-                        <a-entity id="honestidad-orientation" rotation="-90 0 0">
-                            <!-- Modelo con gestos y animación -->
-                            <a-entity id="honestidad-model" gltf-model="#honestidad" scale="1 1 1"
-                                    position="0 0 0" rotation="0 0 0" animation-mixer="loop: repeat" 
-                                    class="clickable" gesture-handler="minScale: 0.3; maxScale: 3"
-                                    rotation-reader>
-                            </a-entity>
-                        </a-entity>
+                    <a-entity id="honestidad-model" gltf-model="#honestidad" scale="1 1 1"
+                            position="0 -1.5 0" rotation="-90 0 0" animation-mixer="loop: repeat" 
+                            class="clickable" custom-gesture-handler="minScale: 0.3; maxScale: 8; rotationFactor: 5; yOnly: true">
                     </a-entity>
                 </a-marker>
                 
                 <a-marker type="pattern" url="markers/pattern-R.patt" id="marker-respeto" emitevents="true" smooth="true" smoothCount="10" smoothTolerance="0.01" smoothThreshold="5">
-                    <a-entity id="respeto-container" position="0 -1.5 0">
-                        <a-entity id="respeto-orientation" rotation="-90 0 0">
-                            <a-entity id="respeto-model" gltf-model="#respeto" scale="1 1 1"
-                                    position="0 0 0" rotation="0 0 0" animation-mixer="loop: repeat" 
-                                    class="clickable" gesture-handler="minScale: 0.3; maxScale: 3"
-                                    rotation-reader>
-                            </a-entity>
-                        </a-entity>
+                    <a-entity id="respeto-model" gltf-model="#respeto" scale="1 1 1"
+                            position="0 -1.5 0" rotation="-90 0 0" animation-mixer="loop: repeat" 
+                            class="clickable" custom-gesture-handler="minScale: 0.3; maxScale: 8; rotationFactor: 5; yOnly: true">
                     </a-entity>
                 </a-marker>
                 
                 <a-marker type="pattern" url="markers/pattern-J.patt" id="marker-justicia" emitevents="true" smooth="true" smoothCount="10" smoothTolerance="0.01" smoothThreshold="5">
-                    <a-entity id="justicia-container" position="0 -1.5 0">
-                        <a-entity id="justicia-orientation" rotation="-90 0 0">
-                            <a-entity id="justicia-model" gltf-model="#justicia" scale="1 1 1"
-                                    position="0 0 0" rotation="0 0 0" animation-mixer="loop: repeat" 
-                                    class="clickable" gesture-handler="minScale: 0.3; maxScale: 3"
-                                    rotation-reader>
-                            </a-entity>
-                        </a-entity>
+                    <a-entity id="justicia-model" gltf-model="#justicia" scale="1 1 1"
+                            position="0 -1.5 0" rotation="-90 0 0" animation-mixer="loop: repeat" 
+                            class="clickable" custom-gesture-handler="minScale: 0.3; maxScale: 8; rotationFactor: 5; yOnly: true">
                     </a-entity>
                 </a-marker>
 
                 <a-marker type="pattern" url="markers/pattern-C.patt" id="marker-compromiso" emitevents="true" smooth="true" smoothCount="10" smoothTolerance="0.01" smoothThreshold="5">
-                    <a-entity id="compromiso-container" position="0 -1.5 0">
-                        <a-entity id="compromiso-orientation" rotation="-90 0 0">
-                            <a-entity id="compromiso-model" gltf-model="#compromiso" scale="1 1 1"
-                                    position="0 0 0" rotation="0 0 0" animation-mixer="loop: repeat" 
-                                    class="clickable" gesture-handler="minScale: 0.3; maxScale: 3"
-                                    rotation-reader>
-                            </a-entity>
-                        </a-entity>
+                    <a-entity id="compromiso-model" gltf-model="#compromiso" scale="1 1 1"
+                            position="0 -1.5 0" rotation="-90 0 0" animation-mixer="loop: repeat" 
+                            class="clickable" custom-gesture-handler="minScale: 0.3; maxScale: 8; rotationFactor: 5; yOnly: true">
                     </a-entity>
                 </a-marker>
                 
                 <a-marker type="pattern" url="markers/pattern-D.patt" id="marker-diligencia" emitevents="true" smooth="true" smoothCount="10" smoothTolerance="0.01" smoothThreshold="5">
-                    <a-entity id="diligencia-container" position="0 -1.5 0">
-                        <a-entity id="diligencia-orientation" rotation="-90 0 0">
-                            <a-entity id="diligencia-model" gltf-model="#diligencia" scale="1 1 1"
-                                    position="0 0 0" rotation="0 0 0" animation-mixer="loop: repeat" 
-                                    class="clickable" gesture-handler="minScale: 0.3; maxScale: 3"
-                                    rotation-reader>
-                            </a-entity>
-                        </a-entity>
+                    <a-entity id="diligencia-model" gltf-model="#diligencia" scale="1 1 1"
+                            position="0 -1.5 0" rotation="-90 0 0" animation-mixer="loop: repeat" 
+                            class="clickable" custom-gesture-handler="minScale: 0.3; maxScale: 8; rotationFactor: 5; yOnly: true">
                     </a-entity>
                 </a-marker>
 
                 <a-marker type="pattern" url="markers/pattern-VR.patt" id="marker-veracidad" emitevents="true" smooth="true" smoothCount="10" smoothTolerance="0.01" smoothThreshold="5">
-                    <a-entity id="veracidad-container" position="0 -1.5 0">
-                        <a-entity id="veracidad-orientation" rotation="-90 0 0">
-                            <a-entity id="veracidad-model" gltf-model="#veracidad" scale="1 1 1"
-                                    position="0 0 0" rotation="0 0 0" animation-mixer="loop: repeat" 
-                                    class="clickable" gesture-handler="minScale: 0.3; maxScale: 3"
-                                    rotation-reader>
-                            </a-entity>
-                        </a-entity>
+                    <a-entity id="veracidad-model" gltf-model="#veracidad" scale="1 1 1"
+                            position="0 -1.5 0" rotation="-90 0 0" animation-mixer="loop: repeat" 
+                            class="clickable" custom-gesture-handler="minScale: 0.3; maxScale: 8; rotationFactor: 5; yOnly: true">
                     </a-entity>
                 </a-marker>
                 
@@ -151,6 +169,7 @@
             <div id="instruction-message" class="instruction">
                 <h2>Instrucciones</h2>
                 <p>Escanea uno de los marcadores para ver el modelo 3D y su información.</p>
+                <p><strong>Gestos:</strong> Usa <strong>un dedo</strong> para rotar y <strong>dos dedos</strong> para acercar/alejar.</p>
             </div>
             <h2 id="title" class="hidden"></h2>
             <p id="valor-text" class="hidden"></p>
