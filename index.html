@@ -26,46 +26,60 @@
                     <a-asset-item id="veracidad" src="https://cdn.glitch.global/f24dfbcf-5d5a-489d-b6c0-b547e6c91644/VERACIDADP1.glb"></a-asset-item>
                 </a-assets>
                 
-                <!-- Marcadores-->
+                <!-- Marcadores con estructura anidada para mejor control de rotación -->
                 <a-marker type="pattern" url="markers/pattern-H.patt" id="marker-honestidad" emitevents="true" smooth="true" smoothCount="5" smoothTolerance="0.01" smoothThreshold="5">
-                    <a-entity id="honestidad-model" gltf-model="#honestidad" scale="1 1 1"
-                              position="0 -1.5 0" animation-mixer="loop: repeat" 
-                              class="clickable" gesture-handler>
+                    <!-- Contenedor para la rotación inicial -->
+                    <a-entity id="honestidad-container" position="0 -1.5 0" rotation="0 0 0">
+                        <!-- Modelo con gestos y animación -->
+                        <a-entity id="honestidad-model" gltf-model="#honestidad" scale="1 1 1"
+                                position="0 0 0" rotation="0 0 0" animation-mixer="loop: repeat" 
+                                class="clickable" gesture-handler="minScale: 0.25; maxScale: 3">
+                        </a-entity>
                     </a-entity>
                 </a-marker>
                 
                 <a-marker type="pattern" url="markers/pattern-R.patt" id="marker-respeto" emitevents="true" smooth="true" smoothCount="5" smoothTolerance="0.01" smoothThreshold="5">
-                    <a-entity id="respeto-model" gltf-model="#respeto" scale="1 1 1"
-                              position="0 -1.5 0" animation-mixer="loop: repeat" 
-                              class="clickable" gesture-handler>
+                    <a-entity id="respeto-container" position="0 -1.5 0" rotation="0 0 0">
+                        <a-entity id="respeto-model" gltf-model="#respeto" scale="1 1 1"
+                                position="0 0 0" rotation="0 0 0" animation-mixer="loop: repeat" 
+                                class="clickable" gesture-handler="minScale: 0.25; maxScale: 3">
+                        </a-entity>
                     </a-entity>
                 </a-marker>
                 
                 <a-marker type="pattern" url="markers/pattern-J.patt" id="marker-justicia" emitevents="true" smooth="true" smoothCount="5" smoothTolerance="0.01" smoothThreshold="5">
-                    <a-entity id="justicia-model" gltf-model="#justicia" scale="1 1 1"
-                              position="0 -1.5 0" animation-mixer="loop: repeat" 
-                              class="clickable" gesture-handler>
+                    <a-entity id="justicia-container" position="0 -1.5 0" rotation="0 0 0">
+                        <a-entity id="justicia-model" gltf-model="#justicia" scale="1 1 1"
+                                position="0 0 0" rotation="0 0 0" animation-mixer="loop: repeat" 
+                                class="clickable" gesture-handler="minScale: 0.25; maxScale: 3">
+                        </a-entity>
                     </a-entity>
                 </a-marker>
 
                 <a-marker type="pattern" url="markers/pattern-C.patt" id="marker-compromiso" emitevents="true" smooth="true" smoothCount="5" smoothTolerance="0.01" smoothThreshold="5">
-                    <a-entity id="compromiso-model" gltf-model="#compromiso" scale="1 1 1"
-                              position="0 -1.5 0" animation-mixer="loop: repeat" 
-                              class="clickable" gesture-handler>
+                    <a-entity id="compromiso-container" position="0 -1.5 0" rotation="0 0 0">
+                        <a-entity id="compromiso-model" gltf-model="#compromiso" scale="1 1 1"
+                                position="0 0 0" rotation="0 0 0" animation-mixer="loop: repeat" 
+                                class="clickable" gesture-handler="minScale: 0.25; maxScale: 3">
+                        </a-entity>
                     </a-entity>
                 </a-marker>
                 
                 <a-marker type="pattern" url="markers/pattern-D.patt" id="marker-diligencia" emitevents="true" smooth="true" smoothCount="5" smoothTolerance="0.01" smoothThreshold="5">
-                    <a-entity id="diligencia-model" gltf-model="#diligencia" scale="1 1 1"
-                              position="0 -1.5 0" animation-mixer="loop: repeat" 
-                              class="clickable" gesture-handler>
+                    <a-entity id="diligencia-container" position="0 -1.5 0" rotation="0 0 0">
+                        <a-entity id="diligencia-model" gltf-model="#diligencia" scale="1 1 1"
+                                position="0 0 0" rotation="0 0 0" animation-mixer="loop: repeat" 
+                                class="clickable" gesture-handler="minScale: 0.25; maxScale: 3">
+                        </a-entity>
                     </a-entity>
                 </a-marker>
 
                 <a-marker type="pattern" url="markers/pattern-VR.patt" id="marker-veracidad" emitevents="true" smooth="true" smoothCount="5" smoothTolerance="0.01" smoothThreshold="5">
-                    <a-entity id="veracidad-model" gltf-model="#veracidad" scale="1 1 1"
-                              position="0 -1.5 0" animation-mixer="loop: repeat" 
-                              class="clickable" gesture-handler>
+                    <a-entity id="veracidad-container" position="0 -1.5 0" rotation="0 0 0">
+                        <a-entity id="veracidad-model" gltf-model="#veracidad" scale="1 1 1"
+                                position="0 0 0" rotation="0 0 0" animation-mixer="loop: repeat" 
+                                class="clickable" gesture-handler="minScale: 0.25; maxScale: 3">
+                        </a-entity>
                     </a-entity>
                 </a-marker>
                 
@@ -105,5 +119,4 @@
     <script src="script.js"></script>
 </body>
 </html>
-
 
