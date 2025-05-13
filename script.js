@@ -26,16 +26,21 @@ const originalModelRotation = "0 0 0" // Sin rotación inicial
 AFRAME.registerComponent("auto-rotate", {
   schema: {
     enabled: { default: true },
-    duration: { default: 1500 }, // Duración de la animación en milisegundos
-    targetRotation: { default: "-90 0 0" }, // Rotación final deseada
+    initialDuration: { default: 1500 }, // Duración de la animación inicial en milisegundos
+    horizontalDuration: { default: 3000 }, // Duración de la rotación horizontal completa
+    targetRotation: { default: "-90 0 0" }, // Rotación final deseada para la primera fase
   },
 
   init: function () {
     this.animate = this.animate.bind(this)
+    this.animateHorizontal = this.animateHorizontal.bind(this)
     this.isAnimating = false
+    this.isRotatingHorizontally = false
     this.startTime = null
+    this.horizontalStartTime = null
     this.initialRotation = { x: 0, y: 0, z: 0 }
     this.targetRotation = this.parseRotation(this.data.targetRotation)
+    this.horizontalRotation = 0 // Ángulo de rotación horizontal actual
 
     // Escuchar el evento markerFound para iniciar la animación
     this.el.sceneEl.addEventListener("markerFound", (e) => {
@@ -74,7 +79,7 @@ AFRAME.registerComponent("auto-rotate", {
 
     if (!this.startTime) this.startTime = timestamp
     const elapsed = timestamp - this.startTime
-    const progress = Math.min(elapsed / this.data.duration, 1)
+    const progress = Math.min(elapsed / this.data.initialDuration, 1)
 
     // Calcular la rotación interpolada
     const newRotation = {
@@ -90,7 +95,49 @@ AFRAME.registerComponent("auto-rotate", {
     if (progress < 1) {
       requestAnimationFrame(this.animate)
     } else {
+      // Primera fase completada, iniciar rotación horizontal
       this.isAnimating = false
+      this.startHorizontalRotation()
+    }
+  },
+
+  startHorizontalRotation: function () {
+    if (this.isRotatingHorizontally) return
+
+    this.isRotatingHorizontally = true
+    this.horizontalStartTime = null
+    this.horizontalRotation = 0
+
+    // Iniciar la animación horizontal
+    requestAnimationFrame(this.animateHorizontal)
+  },
+
+  animateHorizontal: function (timestamp) {
+    if (!this.isRotatingHorizontally) return
+
+    if (!this.horizontalStartTime) this.horizontalStartTime = timestamp
+    const elapsed = timestamp - this.horizontalStartTime
+    const progress = Math.min(elapsed / this.data.horizontalDuration, 1)
+
+    // Calcular la rotación horizontal (360 grados)
+    this.horizontalRotation = 360 * progress
+
+    // Obtener la rotación actual
+    const currentRotation = this.el.getAttribute("rotation")
+
+    // Aplicar la rotación horizontal (solo en el eje Y)
+    this.el.setAttribute("rotation", {
+      x: currentRotation.x,
+      y: this.horizontalRotation,
+      z: currentRotation.z,
+    })
+
+    // Continuar la animación si no ha terminado
+    if (progress < 1) {
+      requestAnimationFrame(this.animateHorizontal)
+    } else {
+      // Rotación horizontal completada
+      this.isRotatingHorizontally = false
       delete animatingModels[this.el.id]
     }
   },
@@ -245,7 +292,8 @@ function resetModelTransform(markerId) {
       if (!modelEntity.hasAttribute("auto-rotate")) {
         modelEntity.setAttribute("auto-rotate", {
           enabled: true,
-          duration: 1500,
+          initialDuration: 1500,
+          horizontalDuration: 3000,
           targetRotation: "-90 0 0",
         })
       }
@@ -350,7 +398,8 @@ function resetModelsForDetection() {
       if (!model.hasAttribute("auto-rotate")) {
         model.setAttribute("auto-rotate", {
           enabled: true,
-          duration: 1500,
+          initialDuration: 1500,
+          horizontalDuration: 3000,
           targetRotation: "-90 0 0",
         })
       }
@@ -442,11 +491,19 @@ window.addEventListener("DOMContentLoaded", () => {
     if (model) {
       model.setAttribute("auto-rotate", {
         enabled: true,
-        duration: 1500,
+        initialDuration: 1500,
+        horizontalDuration: 3000,
         targetRotation: "-90 0 0",
       })
     }
   })
+
+  // Actualizar el mensaje de instrucciones para incluir información sobre la animación
+  const instructionElement = document.querySelector("#instruction-message p")
+  if (instructionElement) {
+    instructionElement.innerHTML =
+      "Escanea uno de los marcadores para ver el modelo 3D y su información.<br><strong>El modelo se animará automáticamente para mostrarse desde todos los ángulos.</strong>"
+  }
 
   // Precarga de voces para mejorar el tiempo de respuesta
   if (speechSynthesis.onvoiceschanged !== undefined) {
