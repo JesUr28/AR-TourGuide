@@ -151,7 +151,7 @@ function stopSpeaking() {
   updateButtonState()
 }
 
-// Función para hacer que un modelo permanezca visible incluso cuando el marcador se pierde
+// Modificar la función makeModelPersistent para que no altere la escala
 function makeModelPersistent(markerId) {
   const markerKey = markerId.replace("marker-", "")
   const marker = document.querySelector(`#${markerId}`)
@@ -177,9 +177,6 @@ function makeModelPersistent(markerId) {
         animateModelFall(modelEntity)
       }
 
-      // Asegurarse de que el modelo esté en la posición correcta
-      // modelEntity.setAttribute("position", originalModelPosition)
-
       // Aplicar filtro de suavizado para reducir la vibración
       modelEntity.setAttribute("animation__filter", {
         property: "position",
@@ -202,6 +199,7 @@ function makeModelPersistent(markerId) {
 
 // Añadir la nueva función resetModelTransform después de la función makeModelPersistent
 // Esta función restablece la escala y posición del modelo a sus valores originales
+// Modificar la función resetModelTransform para que solo restablezca la posición, no la escala
 function resetModelTransform(markerId) {
   const markerKey = markerId.replace("marker-", "")
   const marker = document.querySelector(`#${markerId}`)
@@ -210,22 +208,15 @@ function resetModelTransform(markerId) {
     const modelEntity = marker.querySelector(`#${markerKey}-model`)
 
     if (modelEntity) {
-      // Restablecer la posición original
+      // Restablecer SOLO la posición original, no tocar la escala
       modelEntity.setAttribute("position", originalModelPosition)
 
-      // Restablecer la escala original específica de este modelo
-      if (originalModelScales[markerKey]) {
-        modelEntity.setAttribute("scale", originalModelScales[markerKey])
-      }
-
-      console.log(
-        `Modelo ${markerKey} restablecido a su tamaño (${originalModelScales[markerKey]}) y posición original`,
-      )
+      console.log(`Modelo ${markerKey} restablecido a su posición original, manteniendo su escala HTML`)
     }
   }
 }
 
-// Función para mostrar el contenido del marcador
+// Modificar la función showMarkerContent para que no altere la escala original
 function showMarkerContent(markerId) {
   // Si ya hay un marcador activo o estamos procesando otro, ignorar este
   if (isProcessingMarker && activeMarker && activeMarker !== markerId) {
@@ -264,8 +255,15 @@ function showMarkerContent(markerId) {
   // Actualizar marcador activo
   activeMarker = markerId
 
-  // Restablecer el modelo a su tamaño y posición original
-  resetModelTransform(markerId)
+  // Solo restablecer la posición, NO la escala
+  const marker = document.querySelector(`#${markerId}`)
+  if (marker) {
+    const modelEntity = marker.querySelector(`#${markerKey}-model`)
+    if (modelEntity) {
+      // Solo restablecer la posición, mantener la escala original del HTML
+      modelEntity.setAttribute("position", originalModelPosition)
+    }
+  }
 
   // Hacer que el modelo permanezca visible
   makeModelPersistent(markerId)
@@ -307,37 +305,15 @@ function hideAllModels() {
   })
 }
 
-// Modificar la función resetModelsForDetection para incluir el restablecimiento de escala
+// Modificar la función resetModelsForDetection para que no altere las escalas
 function resetModelsForDetection() {
   const modelIds = ["honestidad", "respeto", "justicia", "compromiso", "diligencia", "veracidad"]
 
   modelIds.forEach((id) => {
     const model = document.querySelector(`#${id}-model`)
     if (model) {
-      // Guardar la escala original definida en el HTML si aún no está guardada
-      if (!originalModelScales[id]) {
-        const scaleAttr = model.getAttribute("scale")
-        if (scaleAttr) {
-          // Si es un objeto con x, y, z
-          if (typeof scaleAttr === "object" && scaleAttr.x !== undefined) {
-            originalModelScales[id] = `${scaleAttr.x} ${scaleAttr.y} ${scaleAttr.z}`
-          }
-          // Si es un string
-          else if (typeof scaleAttr === "string") {
-            originalModelScales[id] = scaleAttr
-          }
-          // Valor por defecto si no se puede determinar
-          else {
-            originalModelScales[id] = "1 1 1"
-          }
-        } else {
-          originalModelScales[id] = "1 1 1" // Valor por defecto
-        }
-        console.log(`Escala original guardada para ${id}: ${originalModelScales[id]}`)
-      }
-
+      // Solo establecer la posición, no modificar la escala
       model.setAttribute("position", originalModelPosition)
-      // No modificamos la escala aquí, solo la posición
       model.classList.remove("hidden-model")
       model.setAttribute("visible", "false")
 
