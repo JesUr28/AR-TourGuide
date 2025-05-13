@@ -182,15 +182,6 @@ function resetModelTransform(markerId) {
       if (modelRotations[markerKey]) {
         modelEntity.setAttribute("rotation", modelRotations[markerKey])
       }
-
-      // Restablecer la rotación Y a 0 (para el control de gestos)
-      const currentRotation = modelEntity.getAttribute("rotation")
-      if (currentRotation) {
-        // Mantener la rotación X y Z, pero resetear Y a 0
-        const rotX = currentRotation.x || -90
-        const rotZ = currentRotation.z || 0
-        modelEntity.setAttribute("rotation", `${rotX} 0 ${rotZ}`)
-      }
     }
   }
 }
@@ -420,5 +411,3 @@ window.addEventListener("resize", checkDeviceAndShowWarning)
 document.getElementById("back-btn").addEventListener("click", () => {
   window.history.back()
 })
-
-
