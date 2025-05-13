@@ -6,7 +6,7 @@ let activeMarker = null
 let isProcessingMarker = false // Flag para evitar procesamiento simultáneo de marcadores
 let persistentMode = false // Flag para modo persistente
 let lastScannedModelId = null // Para guardar el ID del último modelo escaneado
-const animationPlayed = {} // Para rastrear si la animación ya se reprodujo para cada modelo
+const animatedModels = {} // Para rastrear qué modelos ya han sido animados
 
 const playBtn = document.getElementById("play-btn")
 const stopBtn = document.getElementById("stop-btn")
@@ -20,8 +20,6 @@ const instructionMessage = document.getElementById("instruction-message")
 // Posición original de los modelos
 const originalModelPosition = "0 -1.5 0"
 const originalModelScale = "1 1 1" // Escala original de los modelos
-// Posición inicial para la animación de caída (arriba de la pantalla)
-const initialAnimationPosition = "0 5 0"
 
 const texts = {
   honestidad: {
@@ -54,6 +52,50 @@ const texts = {
     content:
       "Expresar siempre la verdad con responsabilidad y sin distorsiones, en la búsqueda del conocimiento y en las relaciones interpersonales. La veracidad en la Universidad Popular del Cesar es base para la confianza institucional, la credibilidad académica y el ejercicio crítico y reflexivo de la libertad de pensamiento.",
   },
+}
+
+// Función para animar la caída del modelo desde arriba
+function animateModelFall(modelEntity) {
+  if (!modelEntity) return
+
+  // Obtener la posición actual
+  const currentPosition = modelEntity.getAttribute("position")
+  
+  // Posición inicial (arriba de la pantalla)
+  const startY = 5
+  // Posición final (la posición original del modelo)
+  const endY = currentPosition.y
+  // Duración total de la animación en milisegundos
+  const duration = 1000
+  // Tiempo de inicio de la animación
+  const startTime = Date.now()
+
+  // Establecer la posición inicial arriba
+  modelEntity.setAttribute("position", `${currentPosition.x} ${startY} ${currentPosition.z}`)
+
+  // Función de animación
+  function animate() {
+    // Tiempo transcurrido desde el inicio de la animación
+    const elapsedTime = Date.now() - startTime
+    // Calcular el progreso de la animación (0 a 1)
+    const progress = Math.min(elapsedTime / duration, 1)
+
+    // Calcular la posición Y actual usando una función de easing
+    // Usamos una función simple de easeOutQuad para un efecto suave
+    const easeOutQuad = (t) => t * (2 - t)
+    const currentY = startY - (startY - endY) * easeOutQuad(progress)
+
+    // Actualizar la posición Y del modelo
+    modelEntity.setAttribute("position", `${currentPosition.x} ${currentY} ${currentPosition.z}`)
+
+    // Continuar la animación si no ha terminado
+    if (progress < 1) {
+      requestAnimationFrame(animate)
+    }
+  }
+
+  // Iniciar la animación
+  animate()
 }
 
 // Función para actualizar el estado de los botones
@@ -109,40 +151,6 @@ function stopSpeaking() {
   updateButtonState()
 }
 
-// Función para aplicar la animación de caída al modelo
-function applyFallingAnimation(modelEntity, markerKey) {
-  // Si ya se reprodujo la animación para este modelo, no la reproducimos de nuevo
-  if (animationPlayed[markerKey]) {
-    return
-  }
-
-  // Marcar que la animación ya se reprodujo para este modelo
-  animationPlayed[markerKey] = true
-
-  // Establecer la posición inicial (arriba de la pantalla)
-  modelEntity.setAttribute("position", initialAnimationPosition)
-
-  // Crear la animación de caída
-  modelEntity.setAttribute("animation__fall", {
-    property: "position",
-    to: originalModelPosition,
-    dur: 1500, // Duración de la animación en milisegundos
-    easing: "easeOutBounce", // Efecto de rebote al final
-    loop: false,
-  })
-
-  // Evento que se dispara cuando termina la animación
-  modelEntity.addEventListener("animationcomplete__fall", () => {
-    // Asegurarse de que el modelo esté en la posición correcta después de la animación
-    modelEntity.setAttribute("position", originalModelPosition)
-
-    // Eliminar la animación para evitar conflictos con la interacción del usuario
-    modelEntity.removeAttribute("animation__fall")
-
-    console.log(`Animación de caída completada para ${markerKey}`)
-  })
-}
-
 // Función para hacer que un modelo permanezca visible incluso cuando el marcador se pierde
 function makeModelPersistent(markerId) {
   const markerKey = markerId.replace("marker-", "")
@@ -164,7 +172,13 @@ function makeModelPersistent(markerId) {
       modelEntity.setAttribute("visible", "true")
 
       // Aplicar la animación de caída si no se ha reproducido aún
-      applyFallingAnimation(modelEntity, markerKey)
+      if (!animatedModels[markerKey]) {
+        animatedModels[markerKey] = true
+        animateModelFall(modelEntity)
+      }
+
+      // Asegurarse de que el modelo esté en la posición correcta
+      // modelEntity.setAttribute("position", originalModelPosition)
 
       // Aplicar filtro de suavizado para reducir la vibración
       modelEntity.setAttribute("animation__filter", {
@@ -305,9 +319,9 @@ function resetModelsForDetection() {
       // model.setAttribute("rotation", "0 0 0")
       model.classList.remove("hidden-model")
       model.setAttribute("visible", "false")
-
-      // Reiniciar el estado de animación para permitir que se reproduzca de nuevo
-      animationPlayed[id] = false
+      
+      // Reiniciar el estado de animación
+      animatedModels[id] = false
     }
   })
 }
@@ -426,6 +440,5 @@ window.addEventListener("resize", checkDeviceAndShowWarning)
 document.getElementById("back-btn").addEventListener("click", () => {
   window.history.back()
 })
-
 
 
