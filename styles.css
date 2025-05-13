@@ -155,14 +155,13 @@
   height: 100%;
   background-color: #000000;
   z-index: 9999;
-  display: flex;
+  display: none;
   flex-direction: column;
   justify-content: center;
   align-items: center;
   color: white;
   text-align: center;
   padding: 20px;
-  display: none;
 }
 
 #desktop-warning h2 {
@@ -199,31 +198,184 @@
   opacity: 0 !important;
 }
 
+/* Estilos mejorados para el mensaje de orientación horizontal */
 #landscape-warning {
-    display: none;
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background-color: rgba(0, 0, 0, 0.8);
-    color: white;
-    text-align: center;
-    z-index: 1000;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(135deg, #1a2a6c, #b21f1f, #fdbb2d);
+  z-index: 9999;
+  display: none;
+  justify-content: center;
+  align-items: center;
+  color: white;
+  text-align: center;
+  padding: 20px;
+  font-family: Arial, sans-serif;
+}
+
+.warning-content {
+  background-color: rgba(0, 0, 0, 0.7);
+  border-radius: 20px;
+  padding: 30px;
+  max-width: 90%;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+  animation: fadeIn 0.5s ease-out;
+  border: 2px solid rgba(255, 255, 255, 0.2);
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.warning-icon {
+  margin-bottom: 20px;
+  animation: pulse-warning 2s infinite;
+}
+
+@keyframes pulse-warning {
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.1);
+  }
+  100% {
+    transform: scale(1);
+  }
 }
 
 #landscape-warning h2 {
-    margin-top: 20vh;
+  font-size: 28px;
+  margin-bottom: 15px;
+  color: #ffd700;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
 }
 
-.rotate-icon {
-    margin-top: 20px;
+#landscape-warning p {
+  font-size: 18px;
+  margin-bottom: 30px;
+  line-height: 1.5;
 }
 
-@media screen and (orientation: landscape) {
-    #landscape-warning {
-        display: block;
-    }
+/* Animación de teléfonos */
+.phone-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: 20px;
+}
+
+.phone {
+  width: 40px;
+  height: 80px;
+  background-color: #333;
+  border-radius: 8px;
+  position: relative;
+  margin: 0 15px;
+}
+
+.phone.horizontal {
+  width: 80px;
+  height: 40px;
+  animation: shake 2s infinite;
+}
+
+.phone.vertical {
+  animation: glow 2s infinite;
+}
+
+.phone-inner {
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  right: 3px;
+  bottom: 3px;
+  border-radius: 5px;
+  background-color: #222;
+}
+
+.phone-screen {
+  position: absolute;
+  top: 5px;
+  left: 5px;
+  right: 5px;
+  bottom: 5px;
+  border-radius: 3px;
+  background-color: #666;
+}
+
+.arrow {
+  animation: arrow-move 2s infinite;
+}
+
+@keyframes arrow-move {
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+  50% {
+    transform: translateX(10px);
+  }
+}
+
+@keyframes shake {
+  0%,
+  100% {
+    transform: rotate(0deg);
+  }
+  10%,
+  30%,
+  50%,
+  70%,
+  90% {
+    transform: rotate(-2deg);
+  }
+  20%,
+  40%,
+  60%,
+  80% {
+    transform: rotate(2deg);
+  }
+}
+
+@keyframes glow {
+  0%,
+  100% {
+    box-shadow: 0 0 10px #4caf50;
+  }
+  50% {
+    box-shadow: 0 0 20px #4caf50;
+  }
+}
+
+.cross-icon {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  color: #f44336;
+  font-size: 20px;
+  font-weight: bold;
+}
+
+.check-icon {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  color: #4caf50;
+  font-size: 20px;
+  font-weight: bold;
 }
 
 
