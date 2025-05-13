@@ -9,76 +9,125 @@
     <script src="https://raw.githack.com/AR-js-org/studio-backend/master/src/modules/marker/tools/gesture-detector.js"></script>
     <script src="https://raw.githack.com/AR-js-org/studio-backend/master/src/modules/marker/tools/gesture-handler.js"></script>
     <link rel="stylesheet" href="styles.css">
+    <!-- Script personalizado para manejar la rotación correctamente -->
+    <script>
+        // Este componente personalizado maneja la rotación horizontal correctamente
+        AFRAME.registerComponent('rotation-reader', {
+            tick: function () {
+                // Obtener la rotación actual del modelo
+                const modelRotation = this.el.getAttribute('rotation');
+                
+                // Obtener la entidad padre (orientation-wrapper)
+                const parent = this.el.parentElement;
+                
+                if (parent && modelRotation) {
+                    // Transferir solo la rotación Y al wrapper de orientación
+                    // Esto permite que la rotación horizontal funcione correctamente
+                    parent.setAttribute('rotation', {
+                        x: -90, // Mantener la orientación hacia adelante
+                        y: modelRotation.y, // Usar la rotación Y del modelo (horizontal)
+                        z: 0 // Mantener z en 0
+                    });
+                    
+                    // Resetear la rotación del modelo para evitar rotaciones acumulativas
+                    this.el.setAttribute('rotation', {
+                        x: 0,
+                        y: 0,
+                        z: 0
+                    });
+                }
+            }
+        });
+    </script>
 </head>
 <body>
     <div id="container">
         <!-- Contenedor del modelo 3D -->
         <div id="model-container">
-            <a-scene embedded arjs="sourceType: webcam; detectionMode: mono_and_matrix; debugUIEnabled: false; matrixCodeType: 3x3; smoothCount: 7; smoothTolerance: 0.01; smoothThreshold: 5;"
+            <a-scene embedded arjs="sourceType: webcam; detectionMode: mono_and_matrix; debugUIEnabled: false; matrixCodeType: 3x3; smoothCount: 15; smoothTolerance: 0.01; smoothThreshold: 5;"
                      vr-mode-ui="enabled: false" renderer="logarithmicDepthBuffer: true; alpha: true; precision: high; antialias: true;"
                      gesture-detector>
                 <a-assets>
-                    <a-asset-item id="honestidad" src="https://cdn.glitch.global/f24dfbcf-5d5a-489d-b6c0-b547e6c91644/escudo10.glb"></a-asset-item>
+                    <a-asset-item id="honestidad" src="https://cdn.glitch.global/f24dfbcf-5d5a-489d-b6c0-b547e6c91644/HONESTIDADP1.glb"></a-asset-item>
                     <a-asset-item id="respeto" src="https://cdn.glitch.global/f24dfbcf-5d5a-489d-b6c0-b547e6c91644/RESPETOP1.glb"></a-asset-item>  <!-- prudencia -->
                     <a-asset-item id="justicia" src="https://cdn.glitch.global/f24dfbcf-5d5a-489d-b6c0-b547e6c91644/JUSTICIAP1.glb"></a-asset-item>
-                    <a-asset-item id="compromiso" src="https://cdn.glitch.global/f24dfbcf-5d5a-489d-b6c0-b547e6c91644/LOGO2.glb"></a-asset-item>
+                    <a-asset-item id="compromiso" src="https://cdn.glitch.global/f24dfbcf-5d5a-489d-b6c0-b547e6c91644/COMPROMISOP1.glb"></a-asset-item>
                     <a-asset-item id="diligencia" src="https://cdn.glitch.global/f24dfbcf-5d5a-489d-b6c0-b547e6c91644/DILIGENCIAP1.glb"></a-asset-item>
                     <a-asset-item id="veracidad" src="https://cdn.glitch.global/f24dfbcf-5d5a-489d-b6c0-b547e6c91644/VERACIDADP1.glb"></a-asset-item>
                 </a-assets>
                 
-                <!-- Marcadores con estructura anidada para mejor control de rotación -->
-                <a-marker type="pattern" url="markers/pattern-H.patt" id="marker-honestidad" emitevents="true" smooth="true" smoothCount="5" smoothTolerance="0.01" smoothThreshold="5">
+                <!-- Marcadores con estructura triple anidada para control preciso de rotación -->
+                <a-marker type="pattern" url="markers/pattern-H.patt" id="marker-honestidad" emitevents="true" smooth="true" smoothCount="10" smoothTolerance="0.01" smoothThreshold="5">
                     <!-- Contenedor para la posición global -->
-                    <a-entity id="honestidad-container" position="0 -2 0">
-                        <!-- Modelo con gestos y animación -->
-                        <a-entity id="honestidad-model" gltf-model="#honestidad" scale="0.6 1 1"
-                                position="0 0 0" rotation="-90 0 0" animation-mixer="loop: repeat" 
-                                class="clickable" gesture-handler="minScale: 0.3; maxScale: 3">
+                    <a-entity id="honestidad-container" position="0 -1.5 0">
+                        <!-- Wrapper para la orientación (rotación inicial) -->
+                        <a-entity id="honestidad-orientation" rotation="-90 0 0">
+                            <!-- Modelo con gestos y animación -->
+                            <a-entity id="honestidad-model" gltf-model="#honestidad" scale="1 1 1"
+                                    position="0 0 0" rotation="0 0 0" animation-mixer="loop: repeat" 
+                                    class="clickable" gesture-handler="minScale: 0.3; maxScale: 3"
+                                    rotation-reader>
+                            </a-entity>
                         </a-entity>
                     </a-entity>
                 </a-marker>
                 
-                <a-marker type="pattern" url="markers/pattern-R.patt" id="marker-respeto" emitevents="true" smooth="true" smoothCount="5" smoothTolerance="0.01" smoothThreshold="5">
+                <a-marker type="pattern" url="markers/pattern-R.patt" id="marker-respeto" emitevents="true" smooth="true" smoothCount="10" smoothTolerance="0.01" smoothThreshold="5">
                     <a-entity id="respeto-container" position="0 -1.5 0">
-                        <a-entity id="respeto-model" gltf-model="#respeto" scale="1 1 1"
-                                position="0 0 0" rotation="-90 0 0" animation-mixer="loop: repeat" 
-                                class="clickable" gesture-handler="minScale: 0.3; maxScale: 3">
+                        <a-entity id="respeto-orientation" rotation="-90 0 0">
+                            <a-entity id="respeto-model" gltf-model="#respeto" scale="1 1 1"
+                                    position="0 0 0" rotation="0 0 0" animation-mixer="loop: repeat" 
+                                    class="clickable" gesture-handler="minScale: 0.3; maxScale: 3"
+                                    rotation-reader>
+                            </a-entity>
                         </a-entity>
                     </a-entity>
                 </a-marker>
                 
-                <a-marker type="pattern" url="markers/pattern-J.patt" id="marker-justicia" emitevents="true" smooth="true" smoothCount="5" smoothTolerance="0.01" smoothThreshold="5">
+                <a-marker type="pattern" url="markers/pattern-J.patt" id="marker-justicia" emitevents="true" smooth="true" smoothCount="10" smoothTolerance="0.01" smoothThreshold="5">
                     <a-entity id="justicia-container" position="0 -1.5 0">
-                        <a-entity id="justicia-model" gltf-model="#justicia" scale="1 1 1"
-                                position="0 0 0" rotation="-90 0 0" animation-mixer="loop: repeat" 
-                                class="clickable" gesture-handler="minScale: 0.3; maxScale: 3">
+                        <a-entity id="justicia-orientation" rotation="-90 0 0">
+                            <a-entity id="justicia-model" gltf-model="#justicia" scale="1 1 1"
+                                    position="0 0 0" rotation="0 0 0" animation-mixer="loop: repeat" 
+                                    class="clickable" gesture-handler="minScale: 0.3; maxScale: 3"
+                                    rotation-reader>
+                            </a-entity>
                         </a-entity>
                     </a-entity>
                 </a-marker>
 
-                <a-marker type="pattern" url="markers/pattern-C.patt" id="marker-compromiso" emitevents="true" smooth="true" smoothCount="5" smoothTolerance="0.01" smoothThreshold="5">
+                <a-marker type="pattern" url="markers/pattern-C.patt" id="marker-compromiso" emitevents="true" smooth="true" smoothCount="10" smoothTolerance="0.01" smoothThreshold="5">
                     <a-entity id="compromiso-container" position="0 -1.5 0">
-                        <a-entity id="compromiso-model" gltf-model="#compromiso" scale="1 1 1"
-                                position="0 0 0" rotation="-90 0 0" animation-mixer="loop: repeat" 
-                                class="clickable" gesture-handler="minScale: 0.3; maxScale: 3">
+                        <a-entity id="compromiso-orientation" rotation="-90 0 0">
+                            <a-entity id="compromiso-model" gltf-model="#compromiso" scale="1 1 1"
+                                    position="0 0 0" rotation="0 0 0" animation-mixer="loop: repeat" 
+                                    class="clickable" gesture-handler="minScale: 0.3; maxScale: 3"
+                                    rotation-reader>
+                            </a-entity>
                         </a-entity>
                     </a-entity>
                 </a-marker>
                 
-                <a-marker type="pattern" url="markers/pattern-D.patt" id="marker-diligencia" emitevents="true" smooth="true" smoothCount="5" smoothTolerance="0.01" smoothThreshold="5">
+                <a-marker type="pattern" url="markers/pattern-D.patt" id="marker-diligencia" emitevents="true" smooth="true" smoothCount="10" smoothTolerance="0.01" smoothThreshold="5">
                     <a-entity id="diligencia-container" position="0 -1.5 0">
-                        <a-entity id="diligencia-model" gltf-model="#diligencia" scale="1 1 1"
-                                position="0 0 0" rotation="-90 0 0" animation-mixer="loop: repeat" 
-                                class="clickable" gesture-handler="minScale: 0.3; maxScale: 3">
+                        <a-entity id="diligencia-orientation" rotation="-90 0 0">
+                            <a-entity id="diligencia-model" gltf-model="#diligencia" scale="1 1 1"
+                                    position="0 0 0" rotation="0 0 0" animation-mixer="loop: repeat" 
+                                    class="clickable" gesture-handler="minScale: 0.3; maxScale: 3"
+                                    rotation-reader>
+                            </a-entity>
                         </a-entity>
                     </a-entity>
                 </a-marker>
 
-                <a-marker type="pattern" url="markers/pattern-VR.patt" id="marker-veracidad" emitevents="true" smooth="true" smoothCount="5" smoothTolerance="0.01" smoothThreshold="5">
+                <a-marker type="pattern" url="markers/pattern-VR.patt" id="marker-veracidad" emitevents="true" smooth="true" smoothCount="10" smoothTolerance="0.01" smoothThreshold="5">
                     <a-entity id="veracidad-container" position="0 -1.5 0">
-                        <a-entity id="veracidad-model" gltf-model="#veracidad" scale="1 1 1"
-                                position="0 0 0" rotation="-90 0 0" animation-mixer="loop: repeat" 
-                                class="clickable" gesture-handler="minScale: 0.3; maxScale: 3">
+                        <a-entity id="veracidad-orientation" rotation="-90 0 0">
+                            <a-entity id="veracidad-model" gltf-model="#veracidad" scale="1 1 1"
+                                    position="0 0 0" rotation="0 0 0" animation-mixer="loop: repeat" 
+                                    class="clickable" gesture-handler="minScale: 0.3; maxScale: 3"
+                                    rotation-reader>
+                            </a-entity>
                         </a-entity>
                     </a-entity>
                 </a-marker>
@@ -119,3 +168,4 @@
     <script src="script.js"></script>
 </body>
 </html>
+
