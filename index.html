@@ -9,12 +9,81 @@
     <script src="https://raw.githack.com/AR-js-org/studio-backend/master/src/modules/marker/tools/gesture-detector.js"></script>
     <script src="https://raw.githack.com/AR-js-org/studio-backend/master/src/modules/marker/tools/gesture-handler.js"></script>
     <link rel="stylesheet" href="styles.css">
+    <!-- Añadir script personalizado para mejorar el manejo de gestos -->
+    <script>
+        // Este script se ejecutará después de que se cargue A-Frame
+        AFRAME.registerComponent('improved-gesture-handler', {
+            schema: {
+                enabled: { default: true },
+                rotationFactor: { default: 5 },
+                minScale: { default: 0.3 },
+                maxScale: { default: 3 }
+            },
+            
+            init: function() {
+                this.handleScale = this.handleScale.bind(this);
+                this.handleRotation = this.handleRotation.bind(this);
+                
+                this.isVisible = false;
+                this.initialScale = this.el.object3D.scale.clone();
+                this.scaleFactor = 1;
+                
+                this.el.sceneEl.addEventListener('markerFound', (e) => {
+                    if (e.target === this.el.parentElement) {
+                        this.isVisible = true;
+                    }
+                });
+                
+                this.el.sceneEl.addEventListener('markerLost', (e) => {
+                    if (e.target === this.el.parentElement) {
+                        this.isVisible = false;
+                    }
+                });
+            },
+            
+            update: function() {
+                if (this.data.enabled) {
+                    this.el.sceneEl.addEventListener('twofingermove', this.handleRotation);
+                    this.el.sceneEl.addEventListener('pinch', this.handleScale);
+                } else {
+                    this.el.sceneEl.removeEventListener('twofingermove', this.handleRotation);
+                    this.el.sceneEl.removeEventListener('pinch', this.handleScale);
+                }
+            },
+            
+            remove: function() {
+                this.el.sceneEl.removeEventListener('twofingermove', this.handleRotation);
+                this.el.sceneEl.removeEventListener('pinch', this.handleScale);
+            },
+            
+            handleRotation: function(event) {
+                if (!this.isVisible) return;
+                
+                // Solo permitir rotación en el eje Y (horizontal)
+                this.el.object3D.rotation.y += event.detail.positionChange.x * this.data.rotationFactor;
+            },
+            
+            handleScale: function(event) {
+                if (!this.isVisible) return;
+                
+                this.scaleFactor *= 1 + event.detail.spreadChange / event.detail.startSpread;
+                
+                // Limitar el factor de escala
+                this.scaleFactor = Math.min(Math.max(this.scaleFactor, this.data.minScale), this.data.maxScale);
+                
+                // Aplicar escala uniforme para evitar distorsiones
+                this.el.object3D.scale.x = this.initialScale.x * this.scaleFactor;
+                this.el.object3D.scale.y = this.initialScale.y * this.scaleFactor;
+                this.el.object3D.scale.z = this.initialScale.z * this.scaleFactor;
+            }
+        });
+    </script>
 </head>
 <body>
     <div id="container">
         <!-- Contenedor del modelo 3D -->
         <div id="model-container">
-            <a-scene embedded arjs="sourceType: webcam; detectionMode: mono_and_matrix; debugUIEnabled: false; matrixCodeType: 3x3; smoothCount: 7; smoothTolerance: 0.01; smoothThreshold: 5;"
+            <a-scene embedded arjs="sourceType: webcam; detectionMode: mono_and_matrix; debugUIEnabled: false; matrixCodeType: 3x3; smoothCount: 15; smoothTolerance: 0.01; smoothThreshold: 5;"
                      vr-mode-ui="enabled: false" renderer="logarithmicDepthBuffer: true; alpha: true; precision: high; antialias: true;"
                      gesture-detector>
                 <a-assets>
@@ -27,58 +96,58 @@
                 </a-assets>
                 
                 <!-- Marcadores con estructura anidada para mejor control de rotación -->
-                <a-marker type="pattern" url="markers/pattern-H.patt" id="marker-honestidad" emitevents="true" smooth="true" smoothCount="5" smoothTolerance="0.01" smoothThreshold="5">
-                    <!-- Contenedor para la rotación inicial -->
-                    <a-entity id="honestidad-container" position="0 -1.5 0" rotation="0 0 0">
+                <a-marker type="pattern" url="markers/pattern-H.patt" id="marker-honestidad" emitevents="true" smooth="true" smoothCount="10" smoothTolerance="0.01" smoothThreshold="5">
+                    <!-- Contenedor para la posición global -->
+                    <a-entity id="honestidad-container" position="0 -1.5 0">
                         <!-- Modelo con gestos y animación -->
                         <a-entity id="honestidad-model" gltf-model="#honestidad" scale="1 1 1"
-                                position="0 0 0" rotation="0 0 0" animation-mixer="loop: repeat" 
-                                class="clickable" gesture-handler="minScale: 0.25; maxScale: 3">
+                                position="0 0 0" rotation="-90 0 0" animation-mixer="loop: repeat" 
+                                class="clickable" improved-gesture-handler="minScale: 0.3; maxScale: 3; rotationFactor: 5">
                         </a-entity>
                     </a-entity>
                 </a-marker>
                 
-                <a-marker type="pattern" url="markers/pattern-R.patt" id="marker-respeto" emitevents="true" smooth="true" smoothCount="5" smoothTolerance="0.01" smoothThreshold="5">
-                    <a-entity id="respeto-container" position="0 -1.5 0" rotation="0 0 0">
+                <a-marker type="pattern" url="markers/pattern-R.patt" id="marker-respeto" emitevents="true" smooth="true" smoothCount="10" smoothTolerance="0.01" smoothThreshold="5">
+                    <a-entity id="respeto-container" position="0 -1.5 0">
                         <a-entity id="respeto-model" gltf-model="#respeto" scale="1 1 1"
-                                position="0 0 0" rotation="0 0 0" animation-mixer="loop: repeat" 
-                                class="clickable" gesture-handler="minScale: 0.25; maxScale: 3">
+                                position="0 0 0" rotation="-90 0 0" animation-mixer="loop: repeat" 
+                                class="clickable" improved-gesture-handler="minScale: 0.3; maxScale: 3; rotationFactor: 5">
                         </a-entity>
                     </a-entity>
                 </a-marker>
                 
-                <a-marker type="pattern" url="markers/pattern-J.patt" id="marker-justicia" emitevents="true" smooth="true" smoothCount="5" smoothTolerance="0.01" smoothThreshold="5">
-                    <a-entity id="justicia-container" position="0 -1.5 0" rotation="0 0 0">
+                <a-marker type="pattern" url="markers/pattern-J.patt" id="marker-justicia" emitevents="true" smooth="true" smoothCount="10" smoothTolerance="0.01" smoothThreshold="5">
+                    <a-entity id="justicia-container" position="0 -1.5 0">
                         <a-entity id="justicia-model" gltf-model="#justicia" scale="1 1 1"
-                                position="0 0 0" rotation="0 0 0" animation-mixer="loop: repeat" 
-                                class="clickable" gesture-handler="minScale: 0.25; maxScale: 3">
+                                position="0 0 0" rotation="-90 0 0" animation-mixer="loop: repeat" 
+                                class="clickable" improved-gesture-handler="minScale: 0.3; maxScale: 3; rotationFactor: 5">
                         </a-entity>
                     </a-entity>
                 </a-marker>
 
-                <a-marker type="pattern" url="markers/pattern-C.patt" id="marker-compromiso" emitevents="true" smooth="true" smoothCount="5" smoothTolerance="0.01" smoothThreshold="5">
-                    <a-entity id="compromiso-container" position="0 -1.5 0" rotation="0 0 0">
+                <a-marker type="pattern" url="markers/pattern-C.patt" id="marker-compromiso" emitevents="true" smooth="true" smoothCount="10" smoothTolerance="0.01" smoothThreshold="5">
+                    <a-entity id="compromiso-container" position="0 -1.5 0">
                         <a-entity id="compromiso-model" gltf-model="#compromiso" scale="1 1 1"
-                                position="0 0 0" rotation="0 0 0" animation-mixer="loop: repeat" 
-                                class="clickable" gesture-handler="minScale: 0.25; maxScale: 3">
+                                position="0 0 0" rotation="-90 0 0" animation-mixer="loop: repeat" 
+                                class="clickable" improved-gesture-handler="minScale: 0.3; maxScale: 3; rotationFactor: 5">
                         </a-entity>
                     </a-entity>
                 </a-marker>
                 
-                <a-marker type="pattern" url="markers/pattern-D.patt" id="marker-diligencia" emitevents="true" smooth="true" smoothCount="5" smoothTolerance="0.01" smoothThreshold="5">
-                    <a-entity id="diligencia-container" position="0 -1.5 0" rotation="0 0 0">
+                <a-marker type="pattern" url="markers/pattern-D.patt" id="marker-diligencia" emitevents="true" smooth="true" smoothCount="10" smoothTolerance="0.01" smoothThreshold="5">
+                    <a-entity id="diligencia-container" position="0 -1.5 0">
                         <a-entity id="diligencia-model" gltf-model="#diligencia" scale="1 1 1"
-                                position="0 0 0" rotation="0 0 0" animation-mixer="loop: repeat" 
-                                class="clickable" gesture-handler="minScale: 0.25; maxScale: 3">
+                                position="0 0 0" rotation="-90 0 0" animation-mixer="loop: repeat" 
+                                class="clickable" improved-gesture-handler="minScale: 0.3; maxScale: 3; rotationFactor: 5">
                         </a-entity>
                     </a-entity>
                 </a-marker>
 
-                <a-marker type="pattern" url="markers/pattern-VR.patt" id="marker-veracidad" emitevents="true" smooth="true" smoothCount="5" smoothTolerance="0.01" smoothThreshold="5">
-                    <a-entity id="veracidad-container" position="0 -1.5 0" rotation="0 0 0">
+                <a-marker type="pattern" url="markers/pattern-VR.patt" id="marker-veracidad" emitevents="true" smooth="true" smoothCount="10" smoothTolerance="0.01" smoothThreshold="5">
+                    <a-entity id="veracidad-container" position="0 -1.5 0">
                         <a-entity id="veracidad-model" gltf-model="#veracidad" scale="1 1 1"
-                                position="0 0 0" rotation="0 0 0" animation-mixer="loop: repeat" 
-                                class="clickable" gesture-handler="minScale: 0.25; maxScale: 3">
+                                position="0 0 0" rotation="-90 0 0" animation-mixer="loop: repeat" 
+                                class="clickable" improved-gesture-handler="minScale: 0.3; maxScale: 3; rotationFactor: 5">
                         </a-entity>
                     </a-entity>
                 </a-marker>
@@ -119,4 +188,5 @@
     <script src="script.js"></script>
 </body>
 </html>
+
 
