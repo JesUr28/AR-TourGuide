@@ -6,7 +6,6 @@ let activeMarker = null
 let isProcessingMarker = false // Flag para evitar procesamiento simultáneo de marcadores
 let persistentMode = false // Flag para modo persistente
 let lastScannedModelId = null // Para guardar el ID del último modelo escaneado
-const animatingModels = {} // Para rastrear qué modelos están siendo animados
 
 const playBtn = document.getElementById("play-btn")
 const stopBtn = document.getElementById("stop-btn")
@@ -17,136 +16,9 @@ const textElement = document.getElementById("valor-text")
 const titleElement = document.getElementById("title")
 const instructionMessage = document.getElementById("instruction-message")
 
-// Posición y rotación original de los modelos
+// Posición original de los modelos
 const originalModelPosition = "0 -1.5 0"
-const originalModelScale = "1 1 1"
-const originalModelRotation = "0 0 0" // Sin rotación inicial
-
-// Registrar componente personalizado para la animación de rotación
-AFRAME.registerComponent("auto-rotate", {
-  schema: {
-    enabled: { default: true },
-    initialDuration: { default: 1500 }, // Duración de la animación inicial en milisegundos
-    horizontalDuration: { default: 3000 }, // Duración de la rotación horizontal completa
-    targetRotation: { default: "-90 0 0" }, // Rotación final deseada para la primera fase
-  },
-
-  init: function () {
-    this.animate = this.animate.bind(this)
-    this.animateHorizontal = this.animateHorizontal.bind(this)
-    this.isAnimating = false
-    this.isRotatingHorizontally = false
-    this.startTime = null
-    this.horizontalStartTime = null
-    this.initialRotation = { x: 0, y: 0, z: 0 }
-    this.targetRotation = this.parseRotation(this.data.targetRotation)
-    this.horizontalRotation = 0 // Ángulo de rotación horizontal actual
-
-    // Escuchar el evento markerFound para iniciar la animación
-    this.el.sceneEl.addEventListener("markerFound", (e) => {
-      if (e.target === this.el.parentNode && this.data.enabled && !animatingModels[this.el.id]) {
-        this.startAnimation()
-      }
-    })
-  },
-
-  parseRotation: (rotationStr) => {
-    const parts = rotationStr.split(" ").map(Number.parseFloat)
-    return { x: parts[0] || 0, y: parts[1] || 0, z: parts[2] || 0 }
-  },
-
-  startAnimation: function () {
-    if (this.isAnimating) return
-
-    // Obtener la rotación actual
-    const currentRotation = this.el.getAttribute("rotation")
-    this.initialRotation = {
-      x: currentRotation.x || 0,
-      y: currentRotation.y || 0,
-      z: currentRotation.z || 0,
-    }
-
-    this.isAnimating = true
-    this.startTime = null
-    animatingModels[this.el.id] = true
-
-    // Iniciar la animación
-    requestAnimationFrame(this.animate)
-  },
-
-  animate: function (timestamp) {
-    if (!this.isAnimating) return
-
-    if (!this.startTime) this.startTime = timestamp
-    const elapsed = timestamp - this.startTime
-    const progress = Math.min(elapsed / this.data.initialDuration, 1)
-
-    // Calcular la rotación interpolada
-    const newRotation = {
-      x: this.initialRotation.x + (this.targetRotation.x - this.initialRotation.x) * progress,
-      y: this.initialRotation.y + (this.targetRotation.y - this.initialRotation.y) * progress,
-      z: this.initialRotation.z + (this.targetRotation.z - this.initialRotation.z) * progress,
-    }
-
-    // Aplicar la rotación
-    this.el.setAttribute("rotation", newRotation)
-
-    // Continuar la animación si no ha terminado
-    if (progress < 1) {
-      requestAnimationFrame(this.animate)
-    } else {
-      // Primera fase completada, iniciar rotación horizontal
-      this.isAnimating = false
-      this.startHorizontalRotation()
-    }
-  },
-
-  startHorizontalRotation: function () {
-    if (this.isRotatingHorizontally) return
-
-    this.isRotatingHorizontally = true
-    this.horizontalStartTime = null
-    this.horizontalRotation = 0
-
-    // Iniciar la animación horizontal
-    requestAnimationFrame(this.animateHorizontal)
-  },
-
-  animateHorizontal: function (timestamp) {
-    if (!this.isRotatingHorizontally) return
-
-    if (!this.horizontalStartTime) this.horizontalStartTime = timestamp
-    const elapsed = timestamp - this.horizontalStartTime
-    const progress = Math.min(elapsed / this.data.horizontalDuration, 1)
-
-    // Calcular la rotación horizontal (360 grados)
-    this.horizontalRotation = 360 * progress
-
-    // IMPORTANTE: Mantener la rotación X en -90 grados para que el modelo siga de frente
-    // mientras gira horizontalmente en el eje Y
-    this.el.setAttribute("rotation", {
-      x: -90, // Mantener el modelo de frente (vertical)
-      y: this.horizontalRotation, // Rotar en Y para girar horizontalmente
-      z: 0,
-    })
-
-    // Continuar la animación si no ha terminado
-    if (progress < 1) {
-      requestAnimationFrame(this.animateHorizontal)
-    } else {
-      // Rotación horizontal completada
-      this.isRotatingHorizontally = false
-      delete animatingModels[this.el.id]
-
-      // Mantener el modelo de frente después de la animación
-      this.el.setAttribute("rotation", {
-        x: -90, // Mantener vertical
-        y: 0,
-        z: 0,
-      })
-    }
-  },
-})
+const originalModelScale = "1 1 1" // Escala original de los modelos
 
 const texts = {
   honestidad: {
@@ -254,6 +126,9 @@ function makeModelPersistent(markerId) {
       // Asegurarse de que el modelo sea visible
       modelEntity.setAttribute("visible", "true")
 
+      // Asegurarse de que el modelo esté en la posición correcta
+      modelEntity.setAttribute("position", originalModelPosition)
+
       // Aplicar filtro de suavizado para reducir la vibración
       modelEntity.setAttribute("animation__filter", {
         property: "position",
@@ -274,34 +149,26 @@ function makeModelPersistent(markerId) {
   }
 }
 
-// Función para restablecer la transformación del modelo
+// Añadir la nueva función resetModelTransform después de la función makeModelPersistent
+// Esta función restablece la escala y posición del modelo a sus valores originales
 function resetModelTransform(markerId) {
   const markerKey = markerId.replace("marker-", "")
   const marker = document.querySelector(`#${markerId}`)
 
   if (marker) {
-    // Obtener la entidad del modelo
     const modelEntity = marker.querySelector(`#${markerKey}-model`)
 
     if (modelEntity) {
-      // Restablecer la posición del modelo
+      // Restablecer la posición original
       modelEntity.setAttribute("position", originalModelPosition)
 
-      // Restablecer la escala del modelo
+      // Restablecer la escala original
       modelEntity.setAttribute("scale", originalModelScale)
 
-      // Restablecer la rotación del modelo a 0 (sin rotación inicial)
-      modelEntity.setAttribute("rotation", originalModelRotation)
+      // NO restablecer la rotación para permitir que la animación continúe
+      // modelEntity.setAttribute("rotation", "0 0 0")
 
-      // Añadir el componente auto-rotate si no existe
-      if (!modelEntity.hasAttribute("auto-rotate")) {
-        modelEntity.setAttribute("auto-rotate", {
-          enabled: true,
-          initialDuration: 1500,
-          horizontalDuration: 3000,
-          targetRotation: "-90 0 0",
-        })
-      }
+      console.log(`Modelo ${markerKey} restablecido a su tamaño y posición original`)
     }
   }
 }
@@ -388,7 +255,8 @@ function hideAllModels() {
   })
 }
 
-// Función para preparar todos los modelos para ser detectados nuevamente
+// Modificar la función resetModelsForDetection para incluir el restablecimiento de escala
+// Buscar la función resetModelsForDetection y reemplazarla con esta versión actualizada:
 function resetModelsForDetection() {
   const modelIds = ["honestidad", "respeto", "justicia", "compromiso", "diligencia", "veracidad"]
 
@@ -397,18 +265,8 @@ function resetModelsForDetection() {
     if (model) {
       model.setAttribute("position", originalModelPosition)
       model.setAttribute("scale", originalModelScale)
-      model.setAttribute("rotation", originalModelRotation)
-
-      // Asegurarse de que el componente auto-rotate esté presente
-      if (!model.hasAttribute("auto-rotate")) {
-        model.setAttribute("auto-rotate", {
-          enabled: true,
-          initialDuration: 1500,
-          horizontalDuration: 3000,
-          targetRotation: "-90 0 0",
-        })
-      }
-
+      // NO restablecer la rotación
+      // model.setAttribute("rotation", "0 0 0")
       model.classList.remove("hidden-model")
       model.setAttribute("visible", "false")
     }
@@ -488,29 +346,8 @@ document.addEventListener("gesturestart", (e) => {
   e.preventDefault()
 })
 
-// Inicializar componentes auto-rotate en todos los modelos
+// Precarga de voces para mejorar el tiempo de respuesta
 window.addEventListener("DOMContentLoaded", () => {
-  // Añadir el componente auto-rotate a todos los modelos
-  markerIds.forEach((id) => {
-    const model = document.querySelector(`#${id}-model`)
-    if (model) {
-      model.setAttribute("auto-rotate", {
-        enabled: true,
-        initialDuration: 1500,
-        horizontalDuration: 3000,
-        targetRotation: "-90 0 0",
-      })
-    }
-  })
-
-  // Actualizar el mensaje de instrucciones para incluir información sobre la animación
-  const instructionElement = document.querySelector("#instruction-message p")
-  if (instructionElement) {
-    instructionElement.innerHTML =
-      "Escanea uno de los marcadores para ver el modelo 3D y su información.<br><strong>El modelo se animará automáticamente para mostrarse desde todos los ángulos.</strong>"
-  }
-
-  // Precarga de voces para mejorar el tiempo de respuesta
   if (speechSynthesis.onvoiceschanged !== undefined) {
     speechSynthesis.onvoiceschanged = () => {
       speechSynthesis.getVoices()
