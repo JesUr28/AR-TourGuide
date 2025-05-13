@@ -1,13 +1,14 @@
-// Eliminar variables redundantes y simplificar el código
+// Variables globales optimizadas
 const synth = window.speechSynthesis
 let isSpeaking = false
 let isLoading = false
 let activeMarker = null
-let isProcessingMarker = false // Flag para evitar procesamiento simultáneo de marcadores
-let persistentMode = false // Flag para modo persistente
-let lastScannedModelId = null // Para guardar el ID del último modelo escaneado
-const animatedModels = {} // Para rastrear qué modelos ya han sido animados
+let isProcessingMarker = false
+let persistentMode = false
+let lastScannedModelId = null
+const animatedModels = {}
 
+// Referencias DOM
 const playBtn = document.getElementById("play-btn")
 const stopBtn = document.getElementById("stop-btn")
 const scanNewBtn = document.getElementById("scan-new-btn")
@@ -19,8 +20,8 @@ const instructionMessage = document.getElementById("instruction-message")
 
 // Posición original de los modelos
 const originalModelPosition = "0 -1.5 0"
-const originalModelScales = {} // Almacenará las escalas originales de cada modelo
 
+// Datos de contenido
 const texts = {
   honestidad: {
     title: "Valor Intitucional: HONESTIDAD",
@@ -54,51 +55,38 @@ const texts = {
   },
 }
 
-// Función para animar la caída del modelo desde arriba
+// Lista de IDs de modelos para reutilizar
+const modelIds = ["honestidad", "respeto", "justicia", "compromiso", "diligencia", "veracidad"]
+
+// Función para animar la caída del modelo desde arriba (optimizada)
 function animateModelFall(modelEntity) {
   if (!modelEntity) return
 
-  // Obtener la posición actual
   const currentPosition = modelEntity.getAttribute("position")
-
-  // Posición inicial (arriba de la pantalla)
   const startY = 5
-  // Posición final (la posición original del modelo)
   const endY = currentPosition.y
-  // Duración total de la animación en milisegundos
   const duration = 1000
-  // Tiempo de inicio de la animación
   const startTime = Date.now()
 
-  // Establecer la posición inicial arriba
   modelEntity.setAttribute("position", `${currentPosition.x} ${startY} ${currentPosition.z}`)
 
-  // Función de animación
   function animate() {
-    // Tiempo transcurrido desde el inicio de la animación
     const elapsedTime = Date.now() - startTime
-    // Calcular el progreso de la animación (0 a 1)
     const progress = Math.min(elapsedTime / duration, 1)
-
-    // Calcular la posición Y actual usando una función de easing
-    // Usamos una función simple de easeOutQuad para un efecto suave
     const easeOutQuad = (t) => t * (2 - t)
     const currentY = startY - (startY - endY) * easeOutQuad(progress)
 
-    // Actualizar la posición Y del modelo
     modelEntity.setAttribute("position", `${currentPosition.x} ${currentY} ${currentPosition.z}`)
 
-    // Continuar la animación si no ha terminado
     if (progress < 1) {
       requestAnimationFrame(animate)
     }
   }
 
-  // Iniciar la animación
   animate()
 }
 
-// Función para actualizar el estado de los botones
+// Funciones de UI optimizadas
 function updateButtonState() {
   // Ocultar todos los botones primero
   playBtn.classList.add("hidden")
@@ -108,27 +96,21 @@ function updateButtonState() {
   // Solo mostrar botones si hay un marcador activo
   if (activeMarker) {
     if (isSpeaking) {
-      // Si está reproduciendo, mostrar el botón de detener
       stopBtn.classList.remove("hidden")
     } else {
-      // Si no está reproduciendo, mostrar el botón de reproducir
       playBtn.classList.remove("hidden")
-
-      // Asegurarse de que el botón muestre "Reproducir" y no "Cargando"
       if (!isLoading) {
         playText.classList.remove("hidden")
         loadingText.classList.add("hidden")
       }
     }
 
-    // Mostrar el botón de escanear nuevo si estamos en modo persistente
     if (persistentMode) {
       scanNewBtn.classList.remove("hidden")
     }
   }
 }
 
-// Funciones para gestionar el estado de carga
 function showLoadingState() {
   isLoading = true
   playText.classList.add("hidden")
@@ -143,7 +125,6 @@ function hideLoadingState() {
   playBtn.disabled = false
 }
 
-// Función para detener la reproducción
 function stopSpeaking() {
   synth.cancel()
   isSpeaking = false
@@ -151,33 +132,24 @@ function stopSpeaking() {
   updateButtonState()
 }
 
-// Modificar la función makeModelPersistent para que no altere la escala
+// Función para hacer que un modelo permanezca visible
 function makeModelPersistent(markerId) {
   const markerKey = markerId.replace("marker-", "")
   const marker = document.querySelector(`#${markerId}`)
 
-  // Guardar el ID del último modelo escaneado
   lastScannedModelId = markerKey
-
-  // Activar el modo persistente
   persistentMode = true
 
-  // Configurar el marcador para que no oculte el modelo cuando se pierde
   if (marker) {
-    // Obtener la entidad del modelo
     const modelEntity = marker.querySelector(`#${markerKey}-model`)
-
     if (modelEntity) {
-      // Asegurarse de que el modelo sea visible
       modelEntity.setAttribute("visible", "true")
 
-      // Aplicar la animación de caída si no se ha reproducido aún
       if (!animatedModels[markerKey]) {
         animatedModels[markerKey] = true
         animateModelFall(modelEntity)
       }
 
-      // Aplicar filtro de suavizado para reducir la vibración
       modelEntity.setAttribute("animation__filter", {
         property: "position",
         dur: 100,
@@ -185,54 +157,41 @@ function makeModelPersistent(markerId) {
         loop: false,
       })
 
-      // Eliminar cualquier clase que pueda estar ocultando el modelo
       modelEntity.classList.remove("hidden-model")
-
-      // Configurar el marcador para que no oculte el modelo cuando se pierde
       marker.setAttribute("emitevents", "true")
-
-      // Actualizar los botones
       updateButtonState()
     }
   }
 }
 
-// Añadir la nueva función resetModelTransform después de la función makeModelPersistent
-// Esta función restablece la escala y posición del modelo a sus valores originales
-// Modificar la función resetModelTransform para que solo restablezca la posición, no la escala
-function resetModelTransform(markerId) {
+// Función para restablecer solo la posición del modelo
+function resetModelPosition(markerId) {
   const markerKey = markerId.replace("marker-", "")
   const marker = document.querySelector(`#${markerId}`)
 
   if (marker) {
     const modelEntity = marker.querySelector(`#${markerKey}-model`)
-
     if (modelEntity) {
-      // Restablecer SOLO la posición original, no tocar la escala
       modelEntity.setAttribute("position", originalModelPosition)
-
-      console.log(`Modelo ${markerKey} restablecido a su posición original, manteniendo su escala HTML`)
     }
   }
 }
 
-// Modificar la función showMarkerContent para que no altere la escala original
+// Función para mostrar el contenido del marcador (optimizada)
 function showMarkerContent(markerId) {
-  // Si ya hay un marcador activo o estamos procesando otro, ignorar este
   if (isProcessingMarker && activeMarker && activeMarker !== markerId) {
     return
   }
 
   isProcessingMarker = true
 
-  // Si hay una reproducción en curso y es un marcador diferente, detenerla
   if (isSpeaking && activeMarker && activeMarker !== markerId) {
     stopSpeaking()
   }
 
   const markerKey = markerId.replace("marker-", "")
 
-  // Si estamos cambiando de marcador, ocultar el modelo anterior
+  // Ocultar modelo anterior si existe
   if (activeMarker && activeMarker !== markerId && lastScannedModelId) {
     const previousModelId = activeMarker.replace("marker-", "")
     const previousModel = document.querySelector(`#${previousModelId}-model`)
@@ -241,34 +200,19 @@ function showMarkerContent(markerId) {
     }
   }
 
-  // Ocultar mensaje de instrucción
+  // Actualizar UI
   instructionMessage.classList.add("hidden")
-
-  // Mostrar título y texto
   titleElement.classList.remove("hidden")
   textElement.classList.remove("hidden")
-
-  // Establecer contenido
   titleElement.innerText = texts[markerKey].title
   textElement.innerText = texts[markerKey].content
 
-  // Actualizar marcador activo
   activeMarker = markerId
 
-  // Solo restablecer la posición, NO la escala
-  const marker = document.querySelector(`#${markerId}`)
-  if (marker) {
-    const modelEntity = marker.querySelector(`#${markerKey}-model`)
-    if (modelEntity) {
-      // Solo restablecer la posición, mantener la escala original del HTML
-      modelEntity.setAttribute("position", originalModelPosition)
-    }
-  }
-
-  // Hacer que el modelo permanezca visible
+  // Solo restablecer la posición, mantener la escala original
+  resetModelPosition(markerId)
   makeModelPersistent(markerId)
 
-  // Liberar el flag después de un breve retraso para evitar cambios rápidos
   setTimeout(() => {
     isProcessingMarker = false
   }, 500)
@@ -276,26 +220,19 @@ function showMarkerContent(markerId) {
 
 // Función para ocultar el contenido cuando se pierde un marcador
 function hideMarkerContent(markerId) {
-  // Si estamos en modo persistente, no ocultamos el contenido
   if (persistentMode) return
 
   if (activeMarker === markerId) {
-    // Ocultar título y texto
     titleElement.classList.add("hidden")
     textElement.classList.add("hidden")
-    // Mostrar mensaje de instrucción
     instructionMessage.classList.remove("hidden")
-    // Resetear marcador activo
     activeMarker = null
-    // Ocultar botones
     updateButtonState()
   }
 }
 
-// Función para ocultar todos los modelos 3D
+// Funciones para gestionar modelos
 function hideAllModels() {
-  const modelIds = ["honestidad", "respeto", "justicia", "compromiso", "diligencia", "veracidad"]
-
   modelIds.forEach((id) => {
     const model = document.querySelector(`#${id}-model`)
     if (model) {
@@ -305,19 +242,13 @@ function hideAllModels() {
   })
 }
 
-// Modificar la función resetModelsForDetection para que no altere las escalas
 function resetModelsForDetection() {
-  const modelIds = ["honestidad", "respeto", "justicia", "compromiso", "diligencia", "veracidad"]
-
   modelIds.forEach((id) => {
     const model = document.querySelector(`#${id}-model`)
     if (model) {
-      // Solo establecer la posición, no modificar la escala
       model.setAttribute("position", originalModelPosition)
       model.classList.remove("hidden-model")
       model.setAttribute("visible", "false")
-
-      // Reiniciar el estado de animación
       animatedModels[id] = false
     }
   })
@@ -341,21 +272,15 @@ function resetToScanMode() {
 }
 
 // Configurar eventos para todos los marcadores
-const markerIds = ["honestidad", "respeto", "justicia", "compromiso", "diligencia", "veracidad"]
-
-markerIds.forEach((id) => {
+modelIds.forEach((id) => {
   const marker = document.querySelector(`#marker-${id}`)
   if (marker) {
-    marker.addEventListener("markerFound", () => {
-      showMarkerContent(`marker-${id}`)
-    })
-    marker.addEventListener("markerLost", () => {
-      hideMarkerContent(`marker-${id}`)
-    })
+    marker.addEventListener("markerFound", () => showMarkerContent(`marker-${id}`))
+    marker.addEventListener("markerLost", () => hideMarkerContent(`marker-${id}`))
   }
 })
 
-// Función para iniciar la reproducción
+// Eventos de botones
 playBtn.addEventListener("click", () => {
   if (textElement.innerText && !isLoading) {
     showLoadingState()
@@ -365,9 +290,7 @@ playBtn.addEventListener("click", () => {
     utterance.rate = 1.0
     utterance.pitch = 1.0
 
-    const loadingTimeout = setTimeout(() => {
-      hideLoadingState()
-    }, 5000) // Máximo 5 segundos esperando que empiece a hablar
+    const loadingTimeout = setTimeout(hideLoadingState, 5000)
 
     utterance.onstart = () => {
       clearTimeout(loadingTimeout)
@@ -385,56 +308,13 @@ playBtn.addEventListener("click", () => {
   }
 })
 
-// Función para detener la reproducción
 stopBtn.addEventListener("click", stopSpeaking)
-
-// Función para escanear un nuevo marcador
 scanNewBtn.addEventListener("click", resetToScanMode)
 
 // Prevenir zoom en dispositivos iOS
-document.addEventListener("gesturestart", (e) => {
-  e.preventDefault()
-})
+document.addEventListener("gesturestart", (e) => e.preventDefault())
 
-// Precarga de voces para mejorar el tiempo de respuesta
-window.addEventListener("DOMContentLoaded", () => {
-  if (speechSynthesis.onvoiceschanged !== undefined) {
-    speechSynthesis.onvoiceschanged = () => {
-      speechSynthesis.getVoices()
-    }
-  }
-
-  // Guardar las escalas originales de cada modelo al cargar la página
-  const modelIds = ["honestidad", "respeto", "justicia", "compromiso", "diligencia", "veracidad"]
-  modelIds.forEach((id) => {
-    const model = document.querySelector(`#${id}-model`)
-    if (model) {
-      const scaleAttr = model.getAttribute("scale")
-      if (scaleAttr) {
-        // Si es un objeto con x, y, z
-        if (typeof scaleAttr === "object" && scaleAttr.x !== undefined) {
-          originalModelScales[id] = `${scaleAttr.x} ${scaleAttr.y} ${scaleAttr.z}`
-        }
-        // Si es un string
-        else if (typeof scaleAttr === "string") {
-          originalModelScales[id] = scaleAttr
-        }
-        // Valor por defecto si no se puede determinar
-        else {
-          originalModelScales[id] = "1 1 1"
-        }
-      } else {
-        originalModelScales[id] = "1 1 1" // Valor por defecto
-      }
-      console.log(`Escala original guardada para ${id}: ${originalModelScales[id]}`)
-    }
-  })
-
-  // Asegurarse de que todos los modelos estén preparados para detección al cargar
-  resetModelsForDetection()
-})
-
-// Detección de dispositivo móvil y mostrar advertencia en pantallas grandes
+// Detección de dispositivo móvil
 function isMobileDevice() {
   return (
     window.innerWidth <= 768 ||
@@ -455,13 +335,20 @@ function checkDeviceAndShowWarning() {
   }
 }
 
-// Verificar al cargar la página y cuando cambie el tamaño de la ventana
+// Inicialización
+window.addEventListener("DOMContentLoaded", () => {
+  // Precarga de voces
+  if (speechSynthesis.onvoiceschanged !== undefined) {
+    speechSynthesis.onvoiceschanged = () => speechSynthesis.getVoices()
+  }
+
+  // Preparar modelos para detección
+  resetModelsForDetection()
+})
+
+// Verificar dispositivo
 window.addEventListener("load", checkDeviceAndShowWarning)
 window.addEventListener("resize", checkDeviceAndShowWarning)
 
-// Configurar botones de la advertencia
-document.getElementById("back-btn").addEventListener("click", () => {
-  window.history.back()
-})
-
-
+// Configurar botón de regreso
+document.getElementById("back-btn").addEventListener("click", () => window.history.back())
