@@ -6,6 +6,7 @@ let activeMarker = null
 let isProcessingMarker = false // Flag para evitar procesamiento simultáneo de marcadores
 let persistentMode = false // Flag para modo persistente
 let lastScannedModelId = null // Para guardar el ID del último modelo escaneado
+const animationPlayed = {} // Para rastrear si la animación ya se reprodujo para cada modelo
 
 const playBtn = document.getElementById("play-btn")
 const stopBtn = document.getElementById("stop-btn")
@@ -19,6 +20,8 @@ const instructionMessage = document.getElementById("instruction-message")
 // Posición original de los modelos
 const originalModelPosition = "0 -1.5 0"
 const originalModelScale = "1 1 1" // Escala original de los modelos
+// Posición inicial para la animación de caída (arriba de la pantalla)
+const initialAnimationPosition = "0 5 0"
 
 const texts = {
   honestidad: {
@@ -106,6 +109,40 @@ function stopSpeaking() {
   updateButtonState()
 }
 
+// Función para aplicar la animación de caída al modelo
+function applyFallingAnimation(modelEntity, markerKey) {
+  // Si ya se reprodujo la animación para este modelo, no la reproducimos de nuevo
+  if (animationPlayed[markerKey]) {
+    return
+  }
+
+  // Marcar que la animación ya se reprodujo para este modelo
+  animationPlayed[markerKey] = true
+
+  // Establecer la posición inicial (arriba de la pantalla)
+  modelEntity.setAttribute("position", initialAnimationPosition)
+
+  // Crear la animación de caída
+  modelEntity.setAttribute("animation__fall", {
+    property: "position",
+    to: originalModelPosition,
+    dur: 1500, // Duración de la animación en milisegundos
+    easing: "easeOutBounce", // Efecto de rebote al final
+    loop: false,
+  })
+
+  // Evento que se dispara cuando termina la animación
+  modelEntity.addEventListener("animationcomplete__fall", () => {
+    // Asegurarse de que el modelo esté en la posición correcta después de la animación
+    modelEntity.setAttribute("position", originalModelPosition)
+
+    // Eliminar la animación para evitar conflictos con la interacción del usuario
+    modelEntity.removeAttribute("animation__fall")
+
+    console.log(`Animación de caída completada para ${markerKey}`)
+  })
+}
+
 // Función para hacer que un modelo permanezca visible incluso cuando el marcador se pierde
 function makeModelPersistent(markerId) {
   const markerKey = markerId.replace("marker-", "")
@@ -126,8 +163,8 @@ function makeModelPersistent(markerId) {
       // Asegurarse de que el modelo sea visible
       modelEntity.setAttribute("visible", "true")
 
-      // Asegurarse de que el modelo esté en la posición correcta
-      modelEntity.setAttribute("position", originalModelPosition)
+      // Aplicar la animación de caída si no se ha reproducido aún
+      applyFallingAnimation(modelEntity, markerKey)
 
       // Aplicar filtro de suavizado para reducir la vibración
       modelEntity.setAttribute("animation__filter", {
@@ -256,7 +293,6 @@ function hideAllModels() {
 }
 
 // Modificar la función resetModelsForDetection para incluir el restablecimiento de escala
-// Buscar la función resetModelsForDetection y reemplazarla con esta versión actualizada:
 function resetModelsForDetection() {
   const modelIds = ["honestidad", "respeto", "justicia", "compromiso", "diligencia", "veracidad"]
 
@@ -269,6 +305,9 @@ function resetModelsForDetection() {
       // model.setAttribute("rotation", "0 0 0")
       model.classList.remove("hidden-model")
       model.setAttribute("visible", "false")
+
+      // Reiniciar el estado de animación para permitir que se reproduzca de nuevo
+      animationPlayed[id] = false
     }
   })
 }
@@ -387,5 +426,6 @@ window.addEventListener("resize", checkDeviceAndShowWarning)
 document.getElementById("back-btn").addEventListener("click", () => {
   window.history.back()
 })
+
 
 
