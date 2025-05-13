@@ -120,18 +120,14 @@ AFRAME.registerComponent("auto-rotate", {
     const progress = Math.min(elapsed / this.data.horizontalDuration, 1)
 
     // Calcular la rotación horizontal (360 grados)
-    // Después de rotar -90 en X, necesitamos rotar en Z para que se vea como una rotación horizontal
     this.horizontalRotation = 360 * progress
 
-    // Obtener la rotación actual
-    const currentRotation = this.el.getAttribute("rotation")
-
-    // Aplicar la rotación horizontal en el eje Z en lugar de Y
-    // Esto producirá una rotación horizontal en la pantalla después de la rotación inicial en X
+    // IMPORTANTE: Mantener la rotación X en -90 grados para que el modelo siga de frente
+    // mientras gira horizontalmente en el eje Y
     this.el.setAttribute("rotation", {
-      x: currentRotation.x,
-      y: 0, // Mantener Y en 0
-      z: this.horizontalRotation, // Rotar en Z para el efecto horizontal
+      x: -90, // Mantener el modelo de frente (vertical)
+      y: this.horizontalRotation, // Rotar en Y para girar horizontalmente
+      z: 0,
     })
 
     // Continuar la animación si no ha terminado
@@ -142,15 +138,12 @@ AFRAME.registerComponent("auto-rotate", {
       this.isRotatingHorizontally = false
       delete animatingModels[this.el.id]
 
-      // Restablecer a rotación 0 en Z para permitir interacción normal después
-      setTimeout(() => {
-        const finalRotation = this.el.getAttribute("rotation")
-        this.el.setAttribute("rotation", {
-          x: finalRotation.x,
-          y: 0,
-          z: 0,
-        })
-      }, 100)
+      // Mantener el modelo de frente después de la animación
+      this.el.setAttribute("rotation", {
+        x: -90, // Mantener vertical
+        y: 0,
+        z: 0,
+      })
     }
   },
 })
