@@ -19,7 +19,7 @@ const instructionMessage = document.getElementById("instruction-message")
 
 // Posición original de los modelos
 const originalModelPosition = "0 -1.5 0"
-const originalModelScale = "1 1 1" // Escala original de los modelos
+const originalModelScales = {} // Almacenará las escalas originales de cada modelo
 
 const texts = {
   honestidad: {
@@ -60,7 +60,7 @@ function animateModelFall(modelEntity) {
 
   // Obtener la posición actual
   const currentPosition = modelEntity.getAttribute("position")
-  
+
   // Posición inicial (arriba de la pantalla)
   const startY = 5
   // Posición final (la posición original del modelo)
@@ -213,13 +213,14 @@ function resetModelTransform(markerId) {
       // Restablecer la posición original
       modelEntity.setAttribute("position", originalModelPosition)
 
-      // Restablecer la escala original
-      modelEntity.setAttribute("scale", originalModelScale)
+      // Restablecer la escala original específica de este modelo
+      if (originalModelScales[markerKey]) {
+        modelEntity.setAttribute("scale", originalModelScales[markerKey])
+      }
 
-      // NO restablecer la rotación para permitir que la animación continúe
-      // modelEntity.setAttribute("rotation", "0 0 0")
-
-      console.log(`Modelo ${markerKey} restablecido a su tamaño y posición original`)
+      console.log(
+        `Modelo ${markerKey} restablecido a su tamaño (${originalModelScales[markerKey]}) y posición original`,
+      )
     }
   }
 }
@@ -313,13 +314,33 @@ function resetModelsForDetection() {
   modelIds.forEach((id) => {
     const model = document.querySelector(`#${id}-model`)
     if (model) {
+      // Guardar la escala original definida en el HTML si aún no está guardada
+      if (!originalModelScales[id]) {
+        const scaleAttr = model.getAttribute("scale")
+        if (scaleAttr) {
+          // Si es un objeto con x, y, z
+          if (typeof scaleAttr === "object" && scaleAttr.x !== undefined) {
+            originalModelScales[id] = `${scaleAttr.x} ${scaleAttr.y} ${scaleAttr.z}`
+          }
+          // Si es un string
+          else if (typeof scaleAttr === "string") {
+            originalModelScales[id] = scaleAttr
+          }
+          // Valor por defecto si no se puede determinar
+          else {
+            originalModelScales[id] = "1 1 1"
+          }
+        } else {
+          originalModelScales[id] = "1 1 1" // Valor por defecto
+        }
+        console.log(`Escala original guardada para ${id}: ${originalModelScales[id]}`)
+      }
+
       model.setAttribute("position", originalModelPosition)
-      model.setAttribute("scale", originalModelScale)
-      // NO restablecer la rotación
-      // model.setAttribute("rotation", "0 0 0")
+      // No modificamos la escala aquí, solo la posición
       model.classList.remove("hidden-model")
       model.setAttribute("visible", "false")
-      
+
       // Reiniciar el estado de animación
       animatedModels[id] = false
     }
@@ -406,6 +427,32 @@ window.addEventListener("DOMContentLoaded", () => {
       speechSynthesis.getVoices()
     }
   }
+
+  // Guardar las escalas originales de cada modelo al cargar la página
+  const modelIds = ["honestidad", "respeto", "justicia", "compromiso", "diligencia", "veracidad"]
+  modelIds.forEach((id) => {
+    const model = document.querySelector(`#${id}-model`)
+    if (model) {
+      const scaleAttr = model.getAttribute("scale")
+      if (scaleAttr) {
+        // Si es un objeto con x, y, z
+        if (typeof scaleAttr === "object" && scaleAttr.x !== undefined) {
+          originalModelScales[id] = `${scaleAttr.x} ${scaleAttr.y} ${scaleAttr.z}`
+        }
+        // Si es un string
+        else if (typeof scaleAttr === "string") {
+          originalModelScales[id] = scaleAttr
+        }
+        // Valor por defecto si no se puede determinar
+        else {
+          originalModelScales[id] = "1 1 1"
+        }
+      } else {
+        originalModelScales[id] = "1 1 1" // Valor por defecto
+      }
+      console.log(`Escala original guardada para ${id}: ${originalModelScales[id]}`)
+    }
+  })
 
   // Asegurarse de que todos los modelos estén preparados para detección al cargar
   resetModelsForDetection()
