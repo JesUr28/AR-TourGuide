@@ -358,6 +358,17 @@ function checkDeviceAndOrientation() {
   container.style.display = "flex"
 }
 
+// Añadir función para prevenir desplazamiento horizontal
+function preventHorizontalScroll(event) {
+  // Si el elemento tiene desplazamiento horizontal
+  if (event.currentTarget.scrollWidth > event.currentTarget.clientWidth) {
+    // Prevenir el desplazamiento horizontal
+    if (event.deltaX !== 0) {
+      event.preventDefault()
+    }
+  }
+}
+
 // Inicialización
 window.addEventListener("DOMContentLoaded", () => {
   // Precarga de voces
@@ -367,6 +378,21 @@ window.addEventListener("DOMContentLoaded", () => {
 
   // Preparar modelos para detección
   resetModelsForDetection()
+
+  // Prevenir desplazamiento horizontal en el contenedor de texto
+  const infoBox = document.getElementById("info-box")
+  if (infoBox) {
+    infoBox.addEventListener("wheel", preventHorizontalScroll, { passive: false })
+    infoBox.addEventListener(
+      "touchmove",
+      (e) => {
+        if (Math.abs(e.touches[0].clientX) > Math.abs(e.touches[0].clientY)) {
+          e.preventDefault()
+        }
+      },
+      { passive: false },
+    )
+  }
 })
 
 // Verificar dispositivo y orientación al cargar y cuando cambie el tamaño/orientación
@@ -377,3 +403,8 @@ window.addEventListener("orientationchange", checkDeviceAndOrientation)
 // Configurar botón de regreso
 document.getElementById("back-btn").addEventListener("click", () => window.history.back())
 
+// Añadir estilos globales para prevenir desplazamiento horizontal
+document.addEventListener("DOMContentLoaded", () => {
+  document.body.style.overflowX = "hidden"
+  document.documentElement.style.overflowX = "hidden"
+})
