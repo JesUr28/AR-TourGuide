@@ -14,7 +14,7 @@
     <div id="container">
         <!-- Contenedor del modelo 3D -->
         <div id="model-container">
-            <a-scene embedded arjs="sourceType: webcam; detectionMode: mono_and_matrix; debugUIEnabled: false; matrixCodeType: 3x3; smoothCount: 15; smoothTolerance: 0.01; smoothThreshold: 5;"
+            <a-scene embedded arjs="sourceType: webcam; detectionMode: mono_and_matrix; debugUIEnabled: false; matrixCodeType: 3x3; smoothCount: 7; smoothTolerance: 0.01; smoothThreshold: 5;"
                      vr-mode-ui="enabled: false" renderer="logarithmicDepthBuffer: true; alpha: true; precision: high; antialias: true;"
                      gesture-detector>
                 <a-assets>
@@ -27,7 +27,7 @@
                 </a-assets>
                 
                 <!-- Marcadores con estructura simplificada -->
-                <a-marker type="pattern" url="markers/pattern-H.patt" id="marker-honestidad" emitevents="true" smooth="true" smoothCount="7" smoothTolerance="0.01" smoothThreshold="5">
+                <a-marker type="pattern" url="markers/pattern-H.patt" id="marker-honestidad" emitevents="true" smooth="true" smoothCount="5" smoothTolerance="0.01" smoothThreshold="5">
                     <a-entity id="honestidad-model" gltf-model="#honestidad" scale="1 1 1"
                             position="0 -1.5 0" rotation="0 0 0" animation-mixer="loop: repeat" 
                             class="clickable" gesture-handler="minScale: 0.3; maxScale: 8">
